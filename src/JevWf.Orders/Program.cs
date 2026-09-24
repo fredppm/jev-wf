@@ -78,7 +78,7 @@ foreach (var item in order.Items)
     item.ClassificationConfidence = resolved.Confidence;
 }
 
-// Step 2: run the deterministic, event-driven workflow, which never talks to the Jev.
+// Step 2: run the event-driven workflow - the Jev picks each item-level tool.
 var inventory = new FakeInventoryCatalog(new Dictionary<string, List<SourcingCandidate>>
 {
     ["item1"] = new()
@@ -105,7 +105,7 @@ var inventory = new FakeInventoryCatalog(new Dictionary<string, List<SourcingCan
 });
 
 var backend = new FakeOrderBackend();
-var runner = new OrderWorkflowRunner(backend, inventory);
+var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(decisionsClient));
 
 // Start: every item moves up to AwaitingPaymentApproval, gated per seller.
 runner.Start(order);
@@ -113,7 +113,7 @@ runner.Start(order);
 // This demo has every seller's payment clear right away - a real order wouldn't guarantee that,
 // which is exactly why payment approval is an event and not a synchronous step.
 foreach (var sellerId in order.Items.Select(i => i.SellerId).Distinct())
-    runner.HandleEvent(order, new PaymentApprovedEvent(sellerId));
+    await runner.HandleEventAsync(order, new PaymentApprovedEvent(sellerId));
 
 runner.Finalize(order);
 
@@ -123,12 +123,12 @@ foreach (var item in order.Items)
 Console.WriteLine();
 
 // A restock event arrives for item5's only candidate origin - sourcing re-runs for just it.
-runner.HandleEvent(order, new RestockEvent("item5", "flagship-store-sp", NewAvailableStock: 5));
+await runner.HandleEventAsync(order, new RestockEvent("item5", "flagship-store-sp", NewAvailableStock: 5));
 runner.Finalize(order);
 
 // Carrier scans confirm delivery for every physical item that's been shipped so far.
 foreach (var item in order.Items.Where(i => i.Status == ItemStatus.Shipped).ToList())
-    runner.HandleEvent(order, new CarrierDeliveredEvent(item.ItemId));
+    await runner.HandleEventAsync(order, new CarrierDeliveredEvent(item.ItemId));
 
 runner.Finalize(order);
 

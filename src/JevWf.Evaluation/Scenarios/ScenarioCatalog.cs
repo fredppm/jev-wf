@@ -674,8 +674,8 @@ public static class ScenarioCatalog
             ExpectedShipments: expectedShipments);
     }
 
-    // A handling exception (damaged in packing) sends the item back to Deferred; the origin that
-    // failed turns out to be out of that unit, so re-sourcing picks the next-best origin instead.
+    // A handling exception (damaged in packing) excludes the failed origin; the Jev decides what
+    // to do next and should re-reserve from the next-best origin.
     private static ScenarioDefinition HandlingExceptionReroutesToResourcing()
     {
         var order = new Order
@@ -709,9 +709,8 @@ public static class ScenarioCatalog
         var events = new List<OrderEvent>
         {
             new PaymentApprovedEvent("seller-fragile-goods"), // sourcing picks fragile-origin-a-sp
-            new HandlingExceptionEvent("vase1", "damaged during packing"), // -> Deferred, origin cleared
-            // The damaged unit was origin A's only one of this SKU - re-sourcing must move on.
-            new RestockEvent("vase1", "fragile-origin-a-sp", NewAvailableStock: 0),
+            // Origin A is excluded from now on; the Jev should re-reserve from origin B.
+            new HandlingExceptionEvent("vase1", "damaged during packing"),
             new FinalizeEvent(), // ships from fragile-origin-b-rj
             new CarrierDeliveredEvent("vase1"),
             new FinalizeEvent()

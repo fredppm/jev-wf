@@ -48,9 +48,11 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(toy2, seller=seller-toystore) -> confirmed
 await_payment_approval(toy2, seller=seller-toystore)
-set_shipping_method(toy2, standard)
-defer_item(toy2, "no sourcing origin with available stock")
+[jev] toy2: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> defer_item (confidence 1.00)
+defer_item(toy2, "payment approved by seller-toystore")
 notify_customer(order-eval-restock, "Your order shipped partially. Item(s) toy2 are awaiting restock.")
+[jev] toy2: options=[reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.87)
+set_shipping_method(toy2, standard)
 reserve_item_stock(toy2, origin=toystore-wh-sp, qty=1)
 start_fulfillment(toy2)
 create_shipment(order-eval-restock, origin=toystore-wh-sp, method=standard, items=[toy2])

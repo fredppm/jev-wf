@@ -47,6 +47,7 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(watch1, seller=seller-timepieces) -> confirmed
 await_payment_approval(watch1, seller=seller-timepieces)
+[jev] watch1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(watch1, standard)
 reserve_item_stock(watch1, origin=timepieces-wh-sp, qty=1)
 start_fulfillment(watch1)

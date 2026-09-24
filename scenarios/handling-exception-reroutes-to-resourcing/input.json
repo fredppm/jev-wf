@@ -44,12 +44,6 @@
       "reason": "damaged during packing"
     },
     {
-      "type": "RestockEvent",
-      "itemId": "vase1",
-      "originId": "fragile-origin-a-sp",
-      "newAvailableStock": 0
-    },
-    {
       "type": "FinalizeEvent"
     },
     {

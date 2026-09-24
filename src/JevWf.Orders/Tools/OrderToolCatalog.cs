@@ -1,8 +1,8 @@
 namespace JevWf.Orders.Tools;
 
-// Catalog of actions the order workflow can execute. The Jev never sees this catalog:
-// it answers Choice/Score/Noul questions about the order, and OrderWorkflowRunner combines
-// those answers to decide which of these actions to trigger.
+// Catalog of actions the order workflow can execute. At item-level decision points
+// (payment approved, restock, handling exception) OrderWorkflowRunner offers the legal subset
+// to the Jev, which picks one. The rest are called deterministically by the workflow.
 public static class OrderToolCatalog
 {
     public static IReadOnlyList<ToolDefinition> All { get; } = new[]

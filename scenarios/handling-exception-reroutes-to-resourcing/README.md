@@ -25,10 +25,9 @@ What the pipeline receives: the order, the stock available per origin, and the e
 
 1. `PaymentApprovedEvent` sellerId=seller-fragile-goods
 2. `HandlingExceptionEvent` itemId=vase1, reason=damaged during packing
-3. `RestockEvent` itemId=vase1, originId=fragile-origin-a-sp, newAvailableStock=0
-4. `FinalizeEvent`
-5. `CarrierDeliveredEvent` itemId=vase1
-6. `FinalizeEvent`
+3. `FinalizeEvent`
+4. `CarrierDeliveredEvent` itemId=vase1
+5. `FinalizeEvent`
 
 ## Output
 
@@ -49,11 +48,13 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(vase1, seller=seller-fragile-goods) -> confirmed
 await_payment_approval(vase1, seller=seller-fragile-goods)
+[jev] vase1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.99)
 set_shipping_method(vase1, standard)
 reserve_item_stock(vase1, origin=fragile-origin-a-sp, qty=1)
 start_fulfillment(vase1)
 handle_handling_exception(vase1, "damaged during packing")
-defer_item(vase1, "handling exception: damaged during packing")
+[jev] vase1: options=[reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.98)
+set_shipping_method(vase1, standard)
 reserve_item_stock(vase1, origin=fragile-origin-b-rj, qty=1)
 start_fulfillment(vase1)
 create_shipment(order-eval-handling-exception, origin=fragile-origin-b-rj, method=standard, items=[vase1])

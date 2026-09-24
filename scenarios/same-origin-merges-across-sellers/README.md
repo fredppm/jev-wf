@@ -53,9 +53,11 @@ request_seller_confirmation(book1, seller=seller-books) -> confirmed
 await_payment_approval(book1, seller=seller-books)
 request_seller_confirmation(toy1, seller=seller-toys) -> confirmed
 await_payment_approval(toy1, seller=seller-toys)
+[jev] book1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(book1, standard)
 reserve_item_stock(book1, origin=shared-3pl-hub-campinas, qty=1)
 start_fulfillment(book1)
+[jev] toy1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(toy1, standard)
 reserve_item_stock(toy1, origin=shared-3pl-hub-campinas, qty=1)
 start_fulfillment(toy1)

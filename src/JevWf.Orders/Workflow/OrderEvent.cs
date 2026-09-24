@@ -1,6 +1,6 @@
 namespace JevWf.Orders.Workflow;
 
-// External triggers OrderWorkflowRunner.HandleEvent reacts to. Everything that can't be decided
+// External triggers OrderWorkflowRunner.HandleEventAsync reacts to. Everything that can't be decided
 // synchronously in one pass - payment clearing, a warehouse restocking, a carrier scan, damage
 // during packing, a return request - arrives as one of these instead of being assumed to happen
 // instantly.

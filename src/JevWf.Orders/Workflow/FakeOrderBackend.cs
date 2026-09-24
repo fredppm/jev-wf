@@ -133,4 +133,12 @@ public sealed class FakeOrderBackend
         _log.Add($"refund_order({orderId}, item={itemId}, \"{reason}\")");
 
     public void CloseOrder(string orderId) => _log.Add($"close_order({orderId})");
+
+    // ---- Jev decisions (not tools - recorded so the log shows who chose each tool) ----
+
+    public void LogDecision(string itemId, IEnumerable<string> options, string chosen, double confidence) =>
+        _log.Add($"[jev] {itemId}: options=[{string.Join(", ", options)}] -> {chosen} (confidence {confidence:F2})");
+
+    public void LogRejected(string itemId, string tool, string reason) =>
+        _log.Add($"[rejected] {tool}({itemId}): {reason}");
 }

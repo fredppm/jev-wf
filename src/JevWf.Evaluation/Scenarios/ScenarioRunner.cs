@@ -6,10 +6,9 @@ using JevWf.Orders.Workflow;
 
 namespace JevWf.Evaluation.Scenarios;
 
-// Runs a scenario end-to-end through the real pipeline (Classification -> Sourcing -> the
-// event-driven Workflow) and compares the actual outcome against what the scenario expects.
-// This tests the solution that uses the Jev, not the Jev in isolation: classification really
-// calls the Decisions API, but sourcing/execution are exercised exactly like production code.
+// Runs a scenario end-to-end: real Jev classification, then the event-driven workflow where the
+// real Jev picks each item-level tool. Compares the final outcome against what's expected -
+// a wrong tool choice by the Jev shows up as a wrong final status/origin/shipment.
 public sealed class ScenarioRunner
 {
     private readonly DecisionsClient _decisions;
@@ -38,7 +37,7 @@ public sealed class ScenarioRunner
 
         var inventory = new FakeInventoryCatalog(scenario.SourcingCandidatesByItemId);
         var backend = new FakeOrderBackend(scenario.DeniedBlockingRequirementItemIds, scenario.ManualReviewRejectedItemIds);
-        var runner = new OrderWorkflowRunner(backend, inventory);
+        var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(_decisions));
 
         runner.Start(scenario.Order);
 
@@ -46,7 +45,7 @@ public sealed class ScenarioRunner
         // grouping happens (via an explicit FinalizeEvent) relative to other events - e.g. a
         // CarrierDeliveredEvent must come after the FinalizeEvent that ships the item.
         foreach (var evt in scenario.Events)
-            runner.HandleEvent(scenario.Order, evt);
+            await runner.HandleEventAsync(scenario.Order, evt, ct);
 
         var actualItemOutcomes = BuildActualItemOutcomes(scenario.Order);
         var actualShipments = BuildActualShipments(scenario.Order);

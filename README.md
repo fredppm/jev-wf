@@ -90,6 +90,24 @@ Order with 5 items: ice cream, controlled medication, e-book, headphones, and a 
 - **item5 (out of stock everywhere)** → every sourcing candidate had zero stock, so the item was deferred deterministically.
 - Each delivered item shipped from a **different origin**, so the order produced **three separate shipments** instead of one — same order, same customer, zero shared logistics, because origin and SLA never matched across items.
 
+## Consistency & latency
+
+`src/JevWf.Evaluation` runs the *same* order N times against the real Decisions API and measures two things a single run can't show: does the Jev's decision stay stable across repeated calls, and how fast is it really.
+
+```
+dotnet run --project src/JevWf.Evaluation -- 10
+```
+
+Each run is saved to `eval-runs/<timestamp>/run-NNN.json` (gitignored - raw runs are volatile and pile up fast) plus an aggregated `summary.json`. A curated snapshot from an actual run is kept under version control in `eval-baselines/` as a historical reference point - to compare against if the model version or the questions change later.
+
+**Result from [`eval-baselines/2026-09-24-jev-1.13.json`](eval-baselines/2026-09-24-jev-1.13.json)** (10 identical calls, same 5-item order as above):
+
+- **15/15 questions were 100% consistent** across all 10 runs - no `noul` ever flipped sides of the 0.5 threshold, no `choice` ever picked a different option.
+- **Confidence stayed high and stable**: 0.93-1.00 across the board.
+- **Latency**: the first call was an outlier (1263 ms - HTTP connection cold start: TLS/DNS), then every subsequent call landed between 266-396 ms. Discounting the cold start, real latency is close to the ~300 ms P50 the OpenRouter model page itself reports.
+
+One thing this run surfaced: `Noul` answers have no `confidence` field at all (confirmed in TypeSafe's docs - the single 0-1 value already fully describes a two-outcome distribution), unlike `Choice`. The evaluator derives an "implied confidence" for `Noul` as `|value - 0.5| × 2` instead of assuming a field that isn't there.
+
 ## Status
 
-Functional prototype, validated end-to-end against the real API. Still missing: reopening the workflow for deferred items once stock is replenished (event-driven re-sourcing — e.g. a "vase broke during packing" event should re-run sourcing for just that item), defining confidence thresholds for escalation (today it's a fixed 0.5 cutoff), a generic "blocking requirement" question instead of a dedicated one per case (prescription, age verification, export license, ...), and replacing the fake backend/inventory with real integrations.
+Functional prototype, validated end-to-end against the real API, including repeated-call consistency and latency. Still missing: reopening the workflow for deferred items once stock is replenished (event-driven re-sourcing — e.g. a "vase broke during packing" event should re-run sourcing for just that item), defining confidence thresholds for escalation (today it's a fixed 0.5 cutoff), a generic "blocking requirement" question instead of a dedicated one per case (prescription, age verification, export license, ...), and replacing the fake backend/inventory with real integrations.

@@ -1,0 +1,151 @@
+{
+  "date_utc": "2026-09-24",
+  "model": "typesafe/jev-1.13",
+  "scenario": "5-item order (ice cream, medication, e-book, headphones, out-of-stock sneakers) - see src/JevWf.Evaluation/Program.cs",
+  "run_count": 10,
+  "questions": {
+    "item1__is_digital_only": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+      "implied_confidence_avg": 0.98,
+      "implied_confidence_min": 0.98,
+      "implied_confidence_max": 0.98
+    },
+    "item1__requires_prescription": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.02, 0.03, 0.03, 0.02, 0.03, 0.03, 0.03, 0.03, 0.03, 0.03],
+      "implied_confidence_avg": 0.944,
+      "implied_confidence_min": 0.94,
+      "implied_confidence_max": 0.96
+    },
+    "item1__shipping_urgency": {
+      "type": "choice",
+      "consistent": true,
+      "missing_count": 0,
+      "choices": ["refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express", "refrigerated_express"],
+      "confidence_avg": 1,
+      "confidence_min": 1,
+      "confidence_max": 1
+    },
+    "item2__is_digital_only": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02, 0.02],
+      "implied_confidence_avg": 0.96,
+      "implied_confidence_min": 0.96,
+      "implied_confidence_max": 0.96
+    },
+    "item2__requires_prescription": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
+      "implied_confidence_avg": 0.98,
+      "implied_confidence_min": 0.98,
+      "implied_confidence_max": 0.98
+    },
+    "item2__shipping_urgency": {
+      "type": "choice",
+      "consistent": true,
+      "missing_count": 0,
+      "choices": ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"],
+      "confidence_avg": 0.944,
+      "confidence_min": 0.93,
+      "confidence_max": 0.96
+    },
+    "item3__is_digital_only": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99, 0.99],
+      "implied_confidence_avg": 0.98,
+      "implied_confidence_min": 0.98,
+      "implied_confidence_max": 0.98
+    },
+    "item3__requires_prescription": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.03, 0.02, 0.03, 0.02, 0.03, 0.02, 0.03, 0.02, 0.03, 0.03],
+      "implied_confidence_avg": 0.948,
+      "implied_confidence_min": 0.94,
+      "implied_confidence_max": 0.96
+    },
+    "item3__shipping_urgency": {
+      "type": "choice",
+      "consistent": true,
+      "missing_count": 0,
+      "choices": ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"],
+      "confidence_avg": 1,
+      "confidence_min": 1,
+      "confidence_max": 1
+    },
+    "item4__is_digital_only": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+      "implied_confidence_avg": 0.98,
+      "implied_confidence_min": 0.98,
+      "implied_confidence_max": 0.98
+    },
+    "item4__requires_prescription": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.02, 0.02, 0.02, 0.03, 0.03, 0.02, 0.02, 0.03, 0.03, 0.02],
+      "implied_confidence_avg": 0.952,
+      "implied_confidence_min": 0.94,
+      "implied_confidence_max": 0.96
+    },
+    "item4__shipping_urgency": {
+      "type": "choice",
+      "consistent": true,
+      "missing_count": 0,
+      "choices": ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"],
+      "confidence_avg": 1,
+      "confidence_min": 1,
+      "confidence_max": 1
+    },
+    "item5__is_digital_only": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01],
+      "implied_confidence_avg": 0.98,
+      "implied_confidence_min": 0.98,
+      "implied_confidence_max": 0.98
+    },
+    "item5__requires_prescription": {
+      "type": "noul",
+      "consistent": true,
+      "missing_count": 0,
+      "values": [0.02, 0.03, 0.02, 0.02, 0.03, 0.02, 0.02, 0.03, 0.02, 0.03],
+      "implied_confidence_avg": 0.952,
+      "implied_confidence_min": 0.94,
+      "implied_confidence_max": 0.96
+    },
+    "item5__shipping_urgency": {
+      "type": "choice",
+      "consistent": true,
+      "missing_count": 0,
+      "choices": ["standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard", "standard"],
+      "confidence_avg": 1,
+      "confidence_min": 1,
+      "confidence_max": 1
+    }
+  },
+  "latency": {
+    "min_ms": 266.43,
+    "avg_ms": 408.66,
+    "p50_ms": 299.63,
+    "p95_ms": 1262.69,
+    "max_ms": 1262.69,
+    "note": "p95/max dominated by first-call HTTP connection cold start (TLS/DNS); runs 2-10 stayed in the 266-396ms range."
+  }
+}

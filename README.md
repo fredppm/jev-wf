@@ -6,15 +6,20 @@ Generic order-movement workflow built on **Jev** (TypeSafe's "System One" model,
 
 Automate an e-commerce order from start to finish, handling heterogeneous items within the same order: an item that needs refrigerated/express delivery (e.g. ice cream), an item that requires a medical prescription (e.g. a controlled drug), a fully digital item (e.g. an e-book, no physical fulfillment step at all), and items without enough stock (partial shipment).
 
-The code owns the flow — it decides the sequence of actions, calls the backend, and decides when to close the order. The Jev is only asked atomic questions about each item — it never decides the next action on its own, and it never generates free text. It is not an agent: it's a structured-decision model (`Noul`/`Choice`/`Score`) that returns a typed answer with probability and confidence, and the workflow deterministically combines those answers.
+The Jev is only ever asked atomic questions about each item's free-text name/description — it never decides the next action on its own, and it never generates free text. It is not an agent: it's a structured-decision model (`Noul`/`Choice`/`Score`) that returns a typed answer with probability and confidence.
 
-There is no structured product catalog/ERP yet (greenfield project): the Jev infers each item's attributes — requires prescription, is digital, shipping urgency — from the product's free-text name and description.
+The system is split into two phases, each owned by a different project:
+
+1. **Classification** — the only phase that talks to the Jev. It resolves each item's attributes (requires prescription, is digital, shipping urgency) from its free-text description.
+2. **Execution** — purely deterministic. It reads the already-resolved attributes and decides/executes the workflow's actions. It has no knowledge that a model was ever involved — it would work identically if those attributes came from a real product catalog instead.
+
+There is no structured product catalog/ERP yet (greenfield project), which is why classification currently comes from the Jev instead of from stored data.
 
 ## How it works
 
-1. `OrderWorkflowRunner` builds the `state` for the whole order (all items together) and makes **a single call** to the Decisions API, asking for each item: does it require a prescription? is it digital? what shipping urgency does it need?
-2. The Jev answers each question with a calibrated probability/choice.
-3. The code applies a decision threshold (0.5) to the answers and triggers the matching actions from the catalog (`Tools/OrderToolCatalog.cs`): validate prescription, mark as digital, set shipping method, reserve stock, etc.
+1. `OrderItemClassifier` (in `JevWf.Classification`) builds the `state` for the whole order (all items together) and makes **a single call** to the Decisions API, asking for each item: does it require a prescription? is it digital? what shipping urgency does it need? It returns each item's resolved `ItemAttributes`.
+2. Those attributes are written onto each `OrderItem`.
+3. `OrderWorkflowRunner` (in `JevWf.Orders`) reads those attributes — synchronously, no network/model calls — and triggers the matching actions from the catalog (`Tools/OrderToolCatalog.cs`): validate prescription, mark as digital, set shipping method, reserve stock, etc.
 4. Items without enough stock are deferred (`defer_item`); the rest are grouped into a partial shipment (`create_partial_shipment`).
 5. The order closes once every item reaches a terminal state (delivered or cancelled).
 
@@ -22,14 +27,15 @@ The real API in use is OpenRouter's **Decisions API**: `POST https://openrouter.
 
 ## Structure
 
-Two projects, split by responsibility:
+Three projects, split by responsibility — the dependency graph flows one way, `Orders → Classification → Decisions`:
 
-- **`src/JevWf.Decisions`** — generic, domain-agnostic client for the Decisions API (`DecisionQuestion`, `DecisionsClient`). Reusable for any future workflow that needs to ask the Jev something, not just orders.
-- **`src/JevWf.Orders`** — the order domain, referencing `JevWf.Decisions`:
-  - `Models` — `Order`, `OrderItem`, `ItemStatus`
+- **`src/JevWf.Decisions`** — generic, domain-agnostic client for the Decisions API (`DecisionQuestion`, `DecisionsClient`). Doesn't know what an "order" is; reusable for any future workflow that needs to ask the Jev something.
+- **`src/JevWf.Classification`** — the order-specific classification phase, referencing `JevWf.Decisions`. `OrderItemClassifier` asks the Jev and returns `ItemAttributes` per item. This is the *only* project that talks to the Jev.
+- **`src/JevWf.Orders`** — the deterministic execution phase, referencing `JevWf.Classification` only to wire things together in `Program.cs`. The engine itself doesn't call it:
+  - `Models` — `Order`, `OrderItem` (carries the resolved attributes once classified), `ItemStatus`
   - `Tools` — catalog of actions the workflow can trigger (not model tools — these are the code's own actions)
-  - `Workflow` — `OrderWorkflowRunner` (the decision engine) and `FakeOrderBackend` (in-memory stock/state, to run without a real ERP)
-  - `Program.cs` — sample entry point
+  - `Workflow` — `OrderWorkflowRunner` (the purely deterministic decision engine — no async, no network) and `FakeOrderBackend` (in-memory stock/state, to run without a real ERP)
+  - `Program.cs` — sample entry point: classify, then run
 
 ## Running
 

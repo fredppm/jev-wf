@@ -1,3 +1,4 @@
+using JevWf.Classification;
 using JevWf.Decisions;
 using JevWf.Orders.Models;
 using JevWf.Orders.Workflow;
@@ -47,6 +48,23 @@ var order = new Order
     }
 };
 
+// Step 1: resolve each item's attributes by asking the Jev (the only step that talks to it).
+using var decisionsClient = new DecisionsClient(apiKey);
+var classifier = new OrderItemClassifier(decisionsClient);
+
+var attributes = await classifier.ClassifyAsync(
+    order.OrderId,
+    order.Items.Select(i => (i.ItemId, i.ProductName, i.Description)).ToList());
+
+foreach (var item in order.Items)
+{
+    var resolved = attributes[item.ItemId];
+    item.RequiresPrescription = resolved.RequiresPrescription;
+    item.IsDigitalOnly = resolved.IsDigitalOnly;
+    item.ShippingMethod = resolved.ShippingMethod;
+}
+
+// Step 2: run the deterministic workflow, which never talks to the Jev.
 // Fake stock: item4 has no availability on purpose, to exercise the partial shipment path.
 var stock = new Dictionary<string, int>
 {
@@ -55,11 +73,9 @@ var stock = new Dictionary<string, int>
     ["item4"] = 0
 };
 
-using var decisionsClient = new DecisionsClient(apiKey);
 var backend = new FakeOrderBackend(stock);
-var runner = new OrderWorkflowRunner(decisionsClient, backend);
-
-await runner.RunAsync(order);
+var runner = new OrderWorkflowRunner(backend);
+runner.Run(order);
 
 Console.WriteLine("== Execution log ==");
 foreach (var entry in backend.Log)

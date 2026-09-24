@@ -61,18 +61,27 @@ dotnet run --project src/JevWf.Evaluation    # all scenario tests
 
 Each scenario runs the **real** pipeline (real Jev call) and asserts the resulting outcome — this tests the solution, not the Jev.
 
+```mermaid
+flowchart LR
+    I["input.json\norder + stock per origin + events"] --> P[Pipeline] --> O["output.json\nclassification + status per item + shipments + tool calls"]
+```
+
+Each folder in [`scenarios/`](scenarios/) has `input.json`, `output.json` and a README explaining both.
+
 | Scenario | Covers |
 |---|---|
-| `simple-shirt` | Trivial baseline, one item, one seller |
-| `multi-seller-complex` | Different sellers/origins/SLAs never merge; out-of-stock item defers |
-| `mixed-attributes` | Prescription + digital + cold-chain + queue-effect sourcing (regression) |
-| `same-origin-merges-across-sellers` | Same origin+SLA merges shipments, seller doesn't matter |
-| `prescription-denied` | Blocking requirement denied → cancelled before sourcing |
-| `heterogeneous-network` | 5 origin types, all 3 SLAs at once |
-| `payment-denied` | Payment never clears → cancelled at the gate |
-| `restock-reopens-deferred-item` | `RestockEvent` recovers a deferred item |
-| `handling-exception-reroutes-to-resourcing` | Damage event reroutes to a different origin |
-| `return-after-delivery` | Post-delivery return + refund |
+| [simple-shirt](scenarios/simple-shirt/) | Trivial baseline, one item, one seller |
+| [multi-seller-complex](scenarios/multi-seller-complex/) | Different sellers/origins/SLAs never merge; out-of-stock item defers |
+| [mixed-attributes](scenarios/mixed-attributes/) | Prescription + digital + cold-chain + queue-effect sourcing (regression) |
+| [same-origin-merges-across-sellers](scenarios/same-origin-merges-across-sellers/) | Same origin+SLA merges shipments, seller doesn't matter |
+| [prescription-denied](scenarios/prescription-denied/) | Blocking requirement denied → cancelled before sourcing |
+| [heterogeneous-network](scenarios/heterogeneous-network/) | 5 origin types, all 3 SLAs at once |
+| [payment-denied](scenarios/payment-denied/) | Payment never clears → cancelled at the gate |
+| [restock-reopens-deferred-item](scenarios/restock-reopens-deferred-item/) | `RestockEvent` recovers a deferred item |
+| [handling-exception-reroutes-to-resourcing](scenarios/handling-exception-reroutes-to-resourcing/) | Damage event reroutes to a different origin |
+| [return-after-delivery](scenarios/return-after-delivery/) | Post-delivery return + refund |
+
+Regenerate the scenario READMEs without calling the API: `dotnet run --project src/JevWf.Evaluation -- --readme-only`.
 
 Not covered: `AwaitingManualReview` rejection (needs a genuinely low-confidence real Jev answer — can't force it deterministically without an ambiguous, flaky description).
 

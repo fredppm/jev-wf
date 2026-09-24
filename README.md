@@ -15,11 +15,33 @@ flowchart LR
     X -- "item waiting / done" --> O[status + shipments]
 ```
 
-| Decision point | Tools offered to the Jev |
+## Actions (tools)
+
+**Chosen by the Jev** — offered at each decision point; the text in the right column is literally what the Jev matches against the facts:
+
+| Tool | Offered at | Jev picks it when… |
+|---|---|---|
+| `mark_item_digital_only` | payment approved | digital = yes → nothing to ship |
+| `request_blocking_requirement_validation` | payment approved | requirement ≠ none and not yet validated |
+| `escalate_for_manual_review` | payment approved | classification confidence < 0.75 and not yet reviewed |
+| `reserve_item_stock` | payment approved, restock, handling exception | physical, stock available, no requirement pending/denied |
+| `defer_item` | payment approved, restock, handling exception | physical and no origin has stock |
+| `cancel_item` | payment approved, restock, handling exception | requirement denied or manual review rejected |
+
+**Called by the workflow** — no real alternative, so no Jev:
+
+| Tool | When |
 |---|---|
-| Payment approved | `mark_item_digital_only`, `request_blocking_requirement_validation`, `escalate_for_manual_review`, `reserve_item_stock`, `defer_item`, `cancel_item` |
-| Restock | `reserve_item_stock`, `defer_item`, `cancel_item` |
-| Handling exception | `reserve_item_stock` (failed origin excluded), `defer_item`, `cancel_item` |
+| `request_seller_confirmation`, `await_payment_approval` | Start |
+| `cancel_item` | PaymentDenied event |
+| `set_shipping_method`, `start_fulfillment` | inside `reserve_item_stock` (SLA from classification, origin from sourcing math) |
+| `complete_item` | inside `mark_item_digital_only` |
+| `handle_handling_exception` | HandlingException event |
+| `create_shipment`, `mark_item_shipped`, `notify_customer`, `close_order` | Finalize (groups by origin + SLA) |
+| `mark_item_delivered` | CarrierDelivered event |
+| `request_return`, `mark_item_returned`, `refund_order` | ReturnRequested event |
+
+In the catalog but not implemented yet: `get_order`, `hold_order`.
 
 - **Facts the Jev sees:** product description, classification, confidence, stock at best origin, validation/review results, last rejected attempt.
 - **Guardrails (code, not Jev):** `reserve_item_stock` is only offered after a legal requirement is validated; a reserve with no stock is rejected and fed back as a fact; max 5 decisions per event.
@@ -64,17 +86,23 @@ stateDiagram-v2
     AwaitingPaymentApproval --> Cancelled: PaymentDenied
     AwaitingPaymentApproval --> Decide: PaymentApproved
     Deferred --> Decide: Restock
-    VerifyingInvoice --> Decide: HandlingException
+    VerifyingInvoice --> HandlingException: HandlingException event
+    HandlingException --> Decide
+    Decide --> Decide: request_blocking_requirement_validation /<br/>escalate_for_manual_review (new fact)
     Decide --> Delivered: mark_item_digital_only
     Decide --> VerifyingInvoice: reserve_item_stock
     Decide --> Deferred: defer_item
     Decide --> Cancelled: cancel_item
-    VerifyingInvoice --> Shipped: Finalize
+    VerifyingInvoice --> Invoiced: Finalize (create_shipment)
+    Invoiced --> Shipped: Finalize
     Shipped --> Delivered: CarrierDelivered
-    Delivered --> Returned: ReturnRequested (+ refund)
+    Delivered --> ReturnRequested: ReturnRequested
+    ReturnRequested --> Returned: mark_item_returned + refund_order
 ```
 
-`Decide` = Jev picks a tool (loop above). Order status is derived from item statuses (`OrderStatusAggregator`). Intermediate states (`Reserved`, `Handling`, ...) exist in `ItemStatus` but the fake passes through them instantly.
+`Decide` is not a stored status: the item keeps its status while the Jev picks tools. Order status is derived from item statuses (`OrderStatusAggregator`).
+
+Passed through instantly by the fake: `AwaitingSellerConfirmation` (in Start), `AwaitingCancellationWindow` → `ReadyForHandling` → `Handling` (in `reserve_item_stock`). Declared in `ItemStatus` but never used yet: `Reserved`, `AwaitingBlockingRequirementValidation`, `AwaitingManualReview`, `Refunded`, `CancellationRequested`, `Cancelling`.
 
 ## Structure
 

@@ -23,10 +23,7 @@ public sealed class OrderItemClassifier
         IReadOnlyList<(string ItemId, string ProductName, string Description)> items,
         CancellationToken ct = default)
     {
-        var state = BuildState(orderId, items);
-        var questions = BuildQuestions(items);
-
-        var answers = await _decisions.AskAsync(state, questions, ct);
+        var answers = await ClassifyRawAsync(orderId, items, ct);
 
         var result = new Dictionary<string, ItemAttributes>();
         foreach (var item in items)
@@ -39,6 +36,20 @@ public sealed class OrderItemClassifier
         }
 
         return result;
+    }
+
+    // Exposes the raw Decisions API response (confidence, full probability distribution per
+    // option) instead of just the resolved attributes. Used by evaluation tooling that needs
+    // to inspect calibration/consistency across repeated calls, not just the final decision.
+    public async Task<JsonObject> ClassifyRawAsync(
+        string orderId,
+        IReadOnlyList<(string ItemId, string ProductName, string Description)> items,
+        CancellationToken ct = default)
+    {
+        var state = BuildState(orderId, items);
+        var questions = BuildQuestions(items);
+
+        return await _decisions.AskAsync(state, questions, ct);
     }
 
     private static JsonObject BuildState(

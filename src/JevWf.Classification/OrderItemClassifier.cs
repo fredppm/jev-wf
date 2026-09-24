@@ -28,11 +28,23 @@ public sealed class OrderItemClassifier
         var result = new Dictionary<string, ItemAttributes>();
         foreach (var item in items)
         {
-            var requiresPrescription = answers.Noul($"{item.ItemId}__requires_prescription") >= DecisionThreshold;
-            var isDigitalOnly = answers.Noul($"{item.ItemId}__is_digital_only") >= DecisionThreshold;
-            var shippingMethod = answers.Choice($"{item.ItemId}__shipping_urgency");
+            var digitalNoul = answers.Noul($"{item.ItemId}__is_digital_only");
+            var isDigitalOnly = digitalNoul >= DecisionThreshold;
+            // Noul answers carry no confidence field - the value's distance from 0.5 already
+            // fully describes the two-outcome distribution (confirmed in TypeSafe's docs).
+            var digitalConfidence = Math.Abs(digitalNoul - 0.5) * 2;
 
-            result[item.ItemId] = new ItemAttributes(requiresPrescription, isDigitalOnly, shippingMethod);
+            var blockingRequirementType = answers.Choice($"{item.ItemId}__blocking_requirement");
+            var blockingRequirementConfidence = answers.Confidence($"{item.ItemId}__blocking_requirement");
+
+            var shippingMethod = answers.Choice($"{item.ItemId}__shipping_urgency");
+            var shippingConfidence = answers.Confidence($"{item.ItemId}__shipping_urgency");
+
+            // Weakest link: if any one of the three answers was shaky, treat the whole item as
+            // shaky - OrderWorkflowRunner escalates to manual review below its threshold.
+            var confidence = Math.Min(digitalConfidence, Math.Min(blockingRequirementConfidence, shippingConfidence));
+
+            result[item.ItemId] = new ItemAttributes(blockingRequirementType, isDigitalOnly, shippingMethod, confidence);
         }
 
         return result;
@@ -82,10 +94,16 @@ public sealed class OrderItemClassifier
         {
             var path = $"items.{item.ItemId}";
 
-            questions[$"{item.ItemId}__requires_prescription"] = DecisionQuestion.Noul(
-                instructions: $"Does the product described in `{path}` require a medical prescription to be delivered to the customer?",
-                trueWhen: "It is a controlled medication or one that legally requires a prescription",
-                falseWhen: "It is a product that does not require a prescription");
+            // Generic blocking requirement instead of a dedicated bool per case: a new
+            // requirement type is a new Choice option here, not a new question/field downstream.
+            questions[$"{item.ItemId}__blocking_requirement"] = DecisionQuestion.Choice(
+                instructions: $"Does the product described in `{path}` have a legal/regulatory requirement that must be validated before it can be delivered to the customer?",
+                criteria: new Dictionary<string, string>
+                {
+                    ["none"] = "No such requirement - an ordinary product",
+                    ["prescription"] = "It is a controlled medication or one that legally requires a prescription",
+                    ["age_restricted"] = "It legally requires age verification before sale (e.g. alcohol, tobacco)"
+                });
 
             questions[$"{item.ItemId}__is_digital_only"] = DecisionQuestion.Noul(
                 instructions: $"Is the product described in `{path}` entirely digital/virtual, with no physical shipping needed?",

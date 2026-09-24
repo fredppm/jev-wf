@@ -6,9 +6,6 @@
 # dotenv files
 .env
 
-# Evaluation run outputs (JevWf.Evaluation) - volatile data, not code
-eval-runs/
-
 # User-specific files
 *.rsuser
 *.suo

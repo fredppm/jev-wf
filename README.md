@@ -89,6 +89,54 @@ Current scenarios:
 
 Not covered by a scenario: escalation to `AwaitingManualReview` on low classification confidence. Confidence comes from the real Jev call, and the baseline consistency run showed it's reliably high (0.93-1.00) for unambiguous descriptions - forcing a low-confidence case would mean writing a deliberately ambiguous description, which trades a deterministic scenario for a flaky one. The escalation path exists and is exercised implicitly (every scenario's confidence is checked against the threshold), just never on the "rejected" branch.
 
+## Real test output (2026-09-24)
+
+`mixed-attributes`, executed against the real Decisions API:
+
+```
+Execution log:
+  - request_seller_confirmation(item1, seller=seller-frozen-treats) -> confirmed
+  - await_payment_approval(item1, seller=seller-frozen-treats)
+  ... (same for item2..item5, each its own seller)
+  - set_shipping_method(item1, refrigerated_express)
+  - reserve_item_stock(item1, origin=cold-dc-sp, qty=1)
+  - start_fulfillment(item1)
+  - request_blocking_requirement_validation(item2, type=prescription, attachment-item2) -> approved
+  - reserve_item_stock(item2, origin=central-pharmacy-sp, qty=1)
+  - mark_item_digital_only(item3)
+  - complete_item(item3)
+  - reserve_item_stock(item4, origin=regional-dc-sp, qty=1)
+  - defer_item(item5, "no sourcing origin with available stock")
+  - create_shipment(order-eval-mixed, origin=cold-dc-sp, method=refrigerated_express, items=[item1])
+  - create_shipment(order-eval-mixed, origin=central-pharmacy-sp, method=standard, items=[item2])
+  - create_shipment(order-eval-mixed, origin=regional-dc-sp, method=standard, items=[item4])
+  - notify_customer(order-eval-mixed, "Your order shipped partially. Item(s) item5 are awaiting restock.")
+  - mark_item_delivered(item1) / (item2) / (item4)
+
+Items: item1 Delivered@cold-dc-sp | item2 (prescription) Delivered@central-pharmacy-sp |
+       item3 (digital) Delivered | item4 Delivered@regional-dc-sp | item5 Deferred
+[PASS] mixed-attributes
+```
+
+`handling-exception-reroutes-to-resourcing`, showing recovery via events:
+
+```
+Execution log:
+  - reserve_item_stock(vase1, origin=fragile-origin-a-sp, qty=1)
+  - start_fulfillment(vase1)
+  - handle_handling_exception(vase1, "damaged during packing")
+  - defer_item(vase1, "handling exception: damaged during packing")
+  - reserve_item_stock(vase1, origin=fragile-origin-b-rj, qty=1)
+  - create_shipment(order-eval-handling-exception, origin=fragile-origin-b-rj, method=standard, items=[vase1])
+  - mark_item_delivered(vase1)
+  - close_order(order-eval-handling-exception)
+
+Items: vase1 Delivered@fragile-origin-b-rj
+[PASS] handling-exception-reroutes-to-resourcing
+```
+
+All 10 scenarios: `== Summary: 10/10 scenarios passed ==`
+
 ## Status
 
 Functional prototype, validated end-to-end against the real API via the scenario tests above, covering the full item lifecycle (payment gating per seller, generic blocking requirements, sourcing with restock recovery, handling exceptions, delivery, and returns). Still missing: real confidence-threshold tuning (today `AwaitingManualReview` triggers at a fixed 0.75 cutoff, untested against real low-confidence cases - see above), a real event source (today's `RestockEvent`/`CarrierDeliveredEvent`/etc. are only ever fired by test/sample code, not by an actual warehouse system or carrier webhook), partial-quantity fulfillment (every scenario ships a full single unit; splitting one item's quantity across origins isn't modeled), and replacing the fake backend/inventory with real integrations.

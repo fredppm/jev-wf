@@ -1,0 +1,53 @@
+{
+  "order": {
+    "orderId": "order-eval-restock",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 700 - Florian\u00F3polis, SC",
+    "items": [
+      {
+        "itemId": "toy2",
+        "sellerId": "seller-toystore",
+        "productName": "Wooden toy car",
+        "description": "Ordinary wooden toy, physical product, no special handling, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "toy2": [
+      {
+        "originId": "toystore-wh-sp",
+        "availableStock": 0,
+        "leadTimeNominalHours": 4,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 4
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-toystore"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "RestockEvent",
+      "itemId": "toy2",
+      "originId": "toystore-wh-sp",
+      "newAvailableStock": 10
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "toy2"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

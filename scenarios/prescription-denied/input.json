@@ -1,0 +1,65 @@
+{
+  "order": {
+    "orderId": "order-eval-blocking-requirement-denied",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 300 - Belo Horizonte, MG",
+    "items": [
+      {
+        "itemId": "deniedmed1",
+        "sellerId": "seller-pharmacy-bh",
+        "productName": "Diazepam 10mg",
+        "description": "Controlled anxiolytic medication, requires a medical prescription to be presented.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "other1",
+        "sellerId": "seller-stationery-bh",
+        "productName": "Notebook (stationery)",
+        "description": "Ordinary paper notebook, no special handling, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "deniedmed1": [
+      {
+        "originId": "seller-pharmacy-bh-dc",
+        "availableStock": 5,
+        "leadTimeNominalHours": 2,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 2
+      }
+    ],
+    "other1": [
+      {
+        "originId": "seller-stationery-bh-wh",
+        "availableStock": 10,
+        "leadTimeNominalHours": 5,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 5
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-pharmacy-bh"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-stationery-bh"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "other1"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

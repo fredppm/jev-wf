@@ -1,0 +1,68 @@
+{
+  "scenario": "multi-seller-complex",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(fridge1, seller=seller-appliances) -\u003E confirmed",
+    "await_payment_approval(fridge1, seller=seller-appliances)",
+    "request_seller_confirmation(icecream1, seller=seller-frozen-foods) -\u003E confirmed",
+    "await_payment_approval(icecream1, seller=seller-frozen-foods)",
+    "request_seller_confirmation(collectible1, seller=seller-collectibles) -\u003E confirmed",
+    "await_payment_approval(collectible1, seller=seller-collectibles)",
+    "set_shipping_method(fridge1, standard)",
+    "reserve_item_stock(fridge1, origin=seller-appliances-wh-rj, qty=1)",
+    "start_fulfillment(fridge1)",
+    "set_shipping_method(icecream1, refrigerated_express)",
+    "reserve_item_stock(icecream1, origin=seller-frozen-foods-dc-sp, qty=1)",
+    "start_fulfillment(icecream1)",
+    "set_shipping_method(collectible1, standard)",
+    "defer_item(collectible1, \u0022no sourcing origin with available stock\u0022)",
+    "create_shipment(order-eval-multiseller, origin=seller-appliances-wh-rj, method=standard, items=[fridge1])",
+    "mark_item_shipped(fridge1)",
+    "create_shipment(order-eval-multiseller, origin=seller-frozen-foods-dc-sp, method=refrigerated_express, items=[icecream1])",
+    "mark_item_shipped(icecream1)",
+    "notify_customer(order-eval-multiseller, \u0022Your order shipped partially. Item(s) collectible1 are awaiting restock.\u0022)",
+    "mark_item_delivered(fridge1)",
+    "mark_item_delivered(icecream1)",
+    "notify_customer(order-eval-multiseller, \u0022Your order shipped partially. Item(s) collectible1 are awaiting restock.\u0022)"
+  ],
+  "items": {
+    "fridge1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-appliances-wh-rj"
+    },
+    "icecream1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "refrigerated_express",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-frozen-foods-dc-sp"
+    },
+    "collectible1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Deferred",
+      "chosenOriginId": null
+    }
+  },
+  "shipments": [
+    {
+      "originId": "seller-appliances-wh-rj",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "fridge1"
+      ]
+    },
+    {
+      "originId": "seller-frozen-foods-dc-sp",
+      "shippingMethod": "refrigerated_express",
+      "itemIds": [
+        "icecream1"
+      ]
+    }
+  ]
+}

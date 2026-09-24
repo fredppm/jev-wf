@@ -1,0 +1,37 @@
+{
+  "scenario": "restock-reopens-deferred-item",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(toy2, seller=seller-toystore) -\u003E confirmed",
+    "await_payment_approval(toy2, seller=seller-toystore)",
+    "set_shipping_method(toy2, standard)",
+    "defer_item(toy2, \u0022no sourcing origin with available stock\u0022)",
+    "notify_customer(order-eval-restock, \u0022Your order shipped partially. Item(s) toy2 are awaiting restock.\u0022)",
+    "reserve_item_stock(toy2, origin=toystore-wh-sp, qty=1)",
+    "start_fulfillment(toy2)",
+    "create_shipment(order-eval-restock, origin=toystore-wh-sp, method=standard, items=[toy2])",
+    "mark_item_shipped(toy2)",
+    "notify_customer(order-eval-restock, \u0022Your order has been confirmed and is on its way.\u0022)",
+    "mark_item_delivered(toy2)",
+    "close_order(order-eval-restock)"
+  ],
+  "items": {
+    "toy2": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "toystore-wh-sp"
+    }
+  },
+  "shipments": [
+    {
+      "originId": "toystore-wh-sp",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "toy2"
+      ]
+    }
+  ]
+}

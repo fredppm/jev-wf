@@ -1,0 +1,63 @@
+{
+  "order": {
+    "orderId": "order-eval-handling-exception",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 800 - Recife, PE",
+    "items": [
+      {
+        "itemId": "vase1",
+        "sellerId": "seller-fragile-goods",
+        "productName": "Ceramic vase",
+        "description": "Ordinary ceramic vase, physical product, no special shipping care required, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "vase1": [
+      {
+        "originId": "fragile-origin-a-sp",
+        "availableStock": 5,
+        "leadTimeNominalHours": 5,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 5
+      },
+      {
+        "originId": "fragile-origin-b-rj",
+        "availableStock": 5,
+        "leadTimeNominalHours": 20,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 20
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-fragile-goods"
+    },
+    {
+      "type": "HandlingExceptionEvent",
+      "itemId": "vase1",
+      "reason": "damaged during packing"
+    },
+    {
+      "type": "RestockEvent",
+      "itemId": "vase1",
+      "originId": "fragile-origin-a-sp",
+      "newAvailableStock": 0
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "vase1"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+{
+  "order": {
+    "orderId": "order-eval-heterogeneous-network",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 400 - Porto Alegre, RS",
+    "items": [
+      {
+        "itemId": "part1",
+        "sellerId": "seller-bike-parts",
+        "productName": "Bicycle brake cable",
+        "description": "Urgent replacement bicycle part, small physical item, needs fast delivery but no refrigeration, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "import1",
+        "sellerId": "seller-imports",
+        "productName": "Imported mechanical keyboard",
+        "description": "Imported physical product, ordinary shipping, no special urgency, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "factory1",
+        "sellerId": "seller-custom-factory",
+        "productName": "Custom-engraved wooden nameplate",
+        "description": "Made-to-order physical product, ordinary shipping, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "fish1",
+        "sellerId": "seller-seafood",
+        "productName": "Fresh salmon fillet",
+        "description": "Perishable seafood, must stay refrigerated and requires cold-chain fast delivery, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "office1",
+        "sellerId": "seller-office-supplies",
+        "productName": "Stapler",
+        "description": "Ordinary office supply, physical product, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "part1": [
+      {
+        "originId": "seller-parts-express-hub-poa",
+        "availableStock": 6,
+        "leadTimeNominalHours": 2,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 2
+      }
+    ],
+    "import1": [
+      {
+        "originId": "seller-electronics-dock-santos",
+        "availableStock": 30,
+        "leadTimeNominalHours": 72,
+        "currentQueue": 0,
+        "capacityPerHour": 20,
+        "effectiveLeadTimeHours": 72
+      },
+      {
+        "originId": "seller-electronics-wh-curitiba",
+        "availableStock": 12,
+        "leadTimeNominalHours": 20,
+        "currentQueue": 0,
+        "capacityPerHour": 15,
+        "effectiveLeadTimeHours": 20
+      }
+    ],
+    "factory1": [
+      {
+        "originId": "seller-custom-factory-joinville",
+        "availableStock": 50,
+        "leadTimeNominalHours": 96,
+        "currentQueue": 0,
+        "capacityPerHour": 5,
+        "effectiveLeadTimeHours": 96
+      }
+    ],
+    "fish1": [
+      {
+        "originId": "seller-seafood-cold-dc-santos",
+        "availableStock": 10,
+        "leadTimeNominalHours": 3,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 3
+      }
+    ],
+    "office1": [
+      {
+        "originId": "seller-office-wh-joinville",
+        "availableStock": 100,
+        "leadTimeNominalHours": 10,
+        "currentQueue": 0,
+        "capacityPerHour": 20,
+        "effectiveLeadTimeHours": 10
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-bike-parts"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-imports"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-custom-factory"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-seafood"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-office-supplies"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "part1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "import1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "factory1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "fish1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "office1"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

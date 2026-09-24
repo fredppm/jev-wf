@@ -1,0 +1,38 @@
+{
+  "scenario": "return-after-delivery",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(watch1, seller=seller-timepieces) -\u003E confirmed",
+    "await_payment_approval(watch1, seller=seller-timepieces)",
+    "set_shipping_method(watch1, standard)",
+    "reserve_item_stock(watch1, origin=timepieces-wh-sp, qty=1)",
+    "start_fulfillment(watch1)",
+    "create_shipment(order-eval-return, origin=timepieces-wh-sp, method=standard, items=[watch1])",
+    "mark_item_shipped(watch1)",
+    "notify_customer(order-eval-return, \u0022Your order has been confirmed and is on its way.\u0022)",
+    "mark_item_delivered(watch1)",
+    "request_return(watch1, \u0022customer changed their mind\u0022)",
+    "mark_item_returned(watch1)",
+    "refund_order(order-eval-return, item=watch1, \u0022customer changed their mind\u0022)",
+    "close_order(order-eval-return)"
+  ],
+  "items": {
+    "watch1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Returned",
+      "chosenOriginId": "timepieces-wh-sp"
+    }
+  },
+  "shipments": [
+    {
+      "originId": "timepieces-wh-sp",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "watch1"
+      ]
+    }
+  ]
+}

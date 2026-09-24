@@ -1,0 +1,46 @@
+{
+  "scenario": "prescription-denied",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(deniedmed1, seller=seller-pharmacy-bh) -\u003E confirmed",
+    "await_payment_approval(deniedmed1, seller=seller-pharmacy-bh)",
+    "request_seller_confirmation(other1, seller=seller-stationery-bh) -\u003E confirmed",
+    "await_payment_approval(other1, seller=seller-stationery-bh)",
+    "request_blocking_requirement_validation(deniedmed1, type=prescription, attachment-deniedmed1) -\u003E denied",
+    "cancel_item(deniedmed1, \u0022prescription not validated\u0022)",
+    "set_shipping_method(other1, standard)",
+    "reserve_item_stock(other1, origin=seller-stationery-bh-wh, qty=1)",
+    "start_fulfillment(other1)",
+    "create_shipment(order-eval-blocking-requirement-denied, origin=seller-stationery-bh-wh, method=standard, items=[other1])",
+    "mark_item_shipped(other1)",
+    "notify_customer(order-eval-blocking-requirement-denied, \u0022Your order has been confirmed and is on its way.\u0022)",
+    "mark_item_delivered(other1)",
+    "close_order(order-eval-blocking-requirement-denied)"
+  ],
+  "items": {
+    "deniedmed1": {
+      "blockingRequirementType": "prescription",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Cancelled",
+      "chosenOriginId": null
+    },
+    "other1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-stationery-bh-wh"
+    }
+  },
+  "shipments": [
+    {
+      "originId": "seller-stationery-bh-wh",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "other1"
+      ]
+    }
+  ]
+}

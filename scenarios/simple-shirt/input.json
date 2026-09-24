@@ -1,0 +1,44 @@
+{
+  "order": {
+    "orderId": "order-eval-simple-shirt",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 100 - S\u00E3o Paulo, SP",
+    "items": [
+      {
+        "itemId": "shirt1",
+        "sellerId": "seller-apparel",
+        "productName": "Plain cotton t-shirt (size M)",
+        "description": "Ordinary cotton t-shirt, no special handling, no legal restriction, not digital.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "shirt1": [
+      {
+        "originId": "seller-apparel-dc-sp",
+        "availableStock": 10,
+        "leadTimeNominalHours": 6,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 6
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-apparel"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "shirt1"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

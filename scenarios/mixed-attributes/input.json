@@ -1,0 +1,134 @@
+{
+  "order": {
+    "orderId": "order-eval-mixed",
+    "customerEmail": "customer@example.com",
+    "shippingAddress": "123 Example St - S\u00E3o Paulo, SP",
+    "items": [
+      {
+        "itemId": "item1",
+        "sellerId": "seller-frozen-treats",
+        "productName": "Pistachio ice cream 1L",
+        "description": "Artisanal pistachio ice cream tub, must be kept frozen until delivery, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "item2",
+        "sellerId": "seller-pharmacy",
+        "productName": "Amoxicillin 500mg",
+        "description": "Controlled antibiotic, requires a medical prescription to be presented.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "item3",
+        "sellerId": "seller-digital-books",
+        "productName": "E-book: Introduction to AI Workflows",
+        "description": "Digital PDF book, delivered by download/email after purchase, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "item4",
+        "sellerId": "seller-electronics",
+        "productName": "Bluetooth headphones",
+        "description": "Wireless headphones, ordinary physical product, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "item5",
+        "sellerId": "seller-collectibles",
+        "productName": "Limited edition sneakers",
+        "description": "Collectible sneakers, ordinary physical product, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "item1": [
+      {
+        "originId": "cold-dc-sp",
+        "availableStock": 5,
+        "leadTimeNominalHours": 4,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 4
+      }
+    ],
+    "item2": [
+      {
+        "originId": "central-pharmacy-sp",
+        "availableStock": 5,
+        "leadTimeNominalHours": 2,
+        "currentQueue": 0,
+        "capacityPerHour": 10,
+        "effectiveLeadTimeHours": 2
+      }
+    ],
+    "item4": [
+      {
+        "originId": "corner-store-sp",
+        "availableStock": 3,
+        "leadTimeNominalHours": 1,
+        "currentQueue": 200,
+        "capacityPerHour": 5,
+        "effectiveLeadTimeHours": 41
+      },
+      {
+        "originId": "regional-dc-sp",
+        "availableStock": 40,
+        "leadTimeNominalHours": 24,
+        "currentQueue": 5,
+        "capacityPerHour": 50,
+        "effectiveLeadTimeHours": 24.1
+      }
+    ],
+    "item5": [
+      {
+        "originId": "flagship-store-sp",
+        "availableStock": 0,
+        "leadTimeNominalHours": 1,
+        "currentQueue": 0,
+        "capacityPerHour": 5,
+        "effectiveLeadTimeHours": 1
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-frozen-treats"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-pharmacy"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-digital-books"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-electronics"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-collectibles"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "item1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "item2"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "item4"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

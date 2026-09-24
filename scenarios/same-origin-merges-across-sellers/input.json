@@ -1,0 +1,69 @@
+{
+  "order": {
+    "orderId": "order-eval-same-origin-merge",
+    "customerEmail": "eval@example.com",
+    "shippingAddress": "Rua Exemplo, 200 - Campinas, SP",
+    "items": [
+      {
+        "itemId": "book1",
+        "sellerId": "seller-books",
+        "productName": "Paperback novel",
+        "description": "Ordinary printed book, no special handling, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      },
+      {
+        "itemId": "toy1",
+        "sellerId": "seller-toys",
+        "productName": "Wooden building blocks set",
+        "description": "Ordinary toy, no special handling, no delivery urgency, no legal restriction.",
+        "quantityRequested": 1
+      }
+    ]
+  },
+  "sourcingCandidates": {
+    "book1": [
+      {
+        "originId": "shared-3pl-hub-campinas",
+        "availableStock": 20,
+        "leadTimeNominalHours": 8,
+        "currentQueue": 0,
+        "capacityPerHour": 20,
+        "effectiveLeadTimeHours": 8
+      }
+    ],
+    "toy1": [
+      {
+        "originId": "shared-3pl-hub-campinas",
+        "availableStock": 15,
+        "leadTimeNominalHours": 8,
+        "currentQueue": 0,
+        "capacityPerHour": 20,
+        "effectiveLeadTimeHours": 8
+      }
+    ]
+  },
+  "events": [
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-books"
+    },
+    {
+      "type": "PaymentApprovedEvent",
+      "sellerId": "seller-toys"
+    },
+    {
+      "type": "FinalizeEvent"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "book1"
+    },
+    {
+      "type": "CarrierDeliveredEvent",
+      "itemId": "toy1"
+    },
+    {
+      "type": "FinalizeEvent"
+    }
+  ]
+}

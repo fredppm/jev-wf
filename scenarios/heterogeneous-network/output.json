@@ -1,0 +1,123 @@
+{
+  "scenario": "heterogeneous-network",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(part1, seller=seller-bike-parts) -\u003E confirmed",
+    "await_payment_approval(part1, seller=seller-bike-parts)",
+    "request_seller_confirmation(import1, seller=seller-imports) -\u003E confirmed",
+    "await_payment_approval(import1, seller=seller-imports)",
+    "request_seller_confirmation(factory1, seller=seller-custom-factory) -\u003E confirmed",
+    "await_payment_approval(factory1, seller=seller-custom-factory)",
+    "request_seller_confirmation(fish1, seller=seller-seafood) -\u003E confirmed",
+    "await_payment_approval(fish1, seller=seller-seafood)",
+    "request_seller_confirmation(office1, seller=seller-office-supplies) -\u003E confirmed",
+    "await_payment_approval(office1, seller=seller-office-supplies)",
+    "set_shipping_method(part1, express)",
+    "reserve_item_stock(part1, origin=seller-parts-express-hub-poa, qty=1)",
+    "start_fulfillment(part1)",
+    "set_shipping_method(import1, standard)",
+    "reserve_item_stock(import1, origin=seller-electronics-wh-curitiba, qty=1)",
+    "start_fulfillment(import1)",
+    "set_shipping_method(factory1, standard)",
+    "reserve_item_stock(factory1, origin=seller-custom-factory-joinville, qty=1)",
+    "start_fulfillment(factory1)",
+    "set_shipping_method(fish1, refrigerated_express)",
+    "reserve_item_stock(fish1, origin=seller-seafood-cold-dc-santos, qty=1)",
+    "start_fulfillment(fish1)",
+    "set_shipping_method(office1, standard)",
+    "reserve_item_stock(office1, origin=seller-office-wh-joinville, qty=1)",
+    "start_fulfillment(office1)",
+    "create_shipment(order-eval-heterogeneous-network, origin=seller-parts-express-hub-poa, method=express, items=[part1])",
+    "mark_item_shipped(part1)",
+    "create_shipment(order-eval-heterogeneous-network, origin=seller-electronics-wh-curitiba, method=standard, items=[import1])",
+    "mark_item_shipped(import1)",
+    "create_shipment(order-eval-heterogeneous-network, origin=seller-custom-factory-joinville, method=standard, items=[factory1])",
+    "mark_item_shipped(factory1)",
+    "create_shipment(order-eval-heterogeneous-network, origin=seller-seafood-cold-dc-santos, method=refrigerated_express, items=[fish1])",
+    "mark_item_shipped(fish1)",
+    "create_shipment(order-eval-heterogeneous-network, origin=seller-office-wh-joinville, method=standard, items=[office1])",
+    "mark_item_shipped(office1)",
+    "notify_customer(order-eval-heterogeneous-network, \u0022Your order has been confirmed and is on its way.\u0022)",
+    "mark_item_delivered(part1)",
+    "mark_item_delivered(import1)",
+    "mark_item_delivered(factory1)",
+    "mark_item_delivered(fish1)",
+    "mark_item_delivered(office1)",
+    "close_order(order-eval-heterogeneous-network)"
+  ],
+  "items": {
+    "part1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "express",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-parts-express-hub-poa"
+    },
+    "import1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-electronics-wh-curitiba"
+    },
+    "factory1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-custom-factory-joinville"
+    },
+    "fish1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "refrigerated_express",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-seafood-cold-dc-santos"
+    },
+    "office1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "seller-office-wh-joinville"
+    }
+  },
+  "shipments": [
+    {
+      "originId": "seller-parts-express-hub-poa",
+      "shippingMethod": "express",
+      "itemIds": [
+        "part1"
+      ]
+    },
+    {
+      "originId": "seller-electronics-wh-curitiba",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "import1"
+      ]
+    },
+    {
+      "originId": "seller-custom-factory-joinville",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "factory1"
+      ]
+    },
+    {
+      "originId": "seller-seafood-cold-dc-santos",
+      "shippingMethod": "refrigerated_express",
+      "itemIds": [
+        "fish1"
+      ]
+    },
+    {
+      "originId": "seller-office-wh-joinville",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "office1"
+      ]
+    }
+  ]
+}

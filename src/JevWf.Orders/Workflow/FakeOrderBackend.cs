@@ -3,31 +3,15 @@ using JevWf.Orders.Models;
 namespace JevWf.Orders.Workflow;
 
 // In-memory implementation of the OrderToolCatalog actions, just to exercise the workflow
-// end-to-end without a real ERP/stock system behind it.
+// end-to-end without a real ERP/logistics system behind it.
 public sealed class FakeOrderBackend
 {
-    private readonly Dictionary<string, int> _stockByItemId;
     private readonly List<string> _log = new();
-
-    public FakeOrderBackend(Dictionary<string, int> stockByItemId)
-    {
-        _stockByItemId = stockByItemId;
-    }
 
     public IReadOnlyList<string> Log => _log;
 
-    public int CheckItemStock(string itemId)
-    {
-        var available = _stockByItemId.GetValueOrDefault(itemId, 0);
-        _log.Add($"check_item_stock({itemId}) -> {available} available");
-        return available;
-    }
-
-    public void ReserveItemStock(string itemId, int quantity)
-    {
-        _stockByItemId[itemId] = _stockByItemId.GetValueOrDefault(itemId, 0) - quantity;
-        _log.Add($"reserve_item_stock({itemId}, {quantity})");
-    }
+    public void ReserveItemStock(string itemId, string originId, int quantity) =>
+        _log.Add($"reserve_item_stock({itemId}, origin={originId}, qty={quantity})");
 
     public void StartFulfillment(string itemId) => _log.Add($"start_fulfillment({itemId})");
 
@@ -61,8 +45,10 @@ public sealed class FakeOrderBackend
         _log.Add($"cancel_item({item.ItemId}, \"{reason}\")");
     }
 
-    public void CreatePartialShipment(string orderId, IReadOnlyList<string> itemIds) =>
-        _log.Add($"create_partial_shipment({orderId}, [{string.Join(", ", itemIds)}])");
+    // One shipment per (origin, shipping method) group - items from different origins or
+    // with incompatible shipping methods can never share a shipment, even in the same order.
+    public void CreateShipment(string orderId, string originId, string shippingMethod, IReadOnlyList<string> itemIds) =>
+        _log.Add($"create_shipment({orderId}, origin={originId}, method={shippingMethod}, items=[{string.Join(", ", itemIds)}])");
 
     public void NotifyCustomer(string orderId, string message) =>
         _log.Add($"notify_customer({orderId}, \"{message}\")");

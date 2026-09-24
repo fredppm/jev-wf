@@ -8,8 +8,7 @@ public static class OrderToolCatalog
     public static IReadOnlyList<ToolDefinition> All { get; } = new[]
     {
         // ---- Item-level tools ----
-        new ToolDefinition("check_item_stock", "Checks stock availability for a specific order item.", ToolLevel.Item),
-        new ToolDefinition("reserve_item_stock", "Reserves the available quantity of an item for fulfillment (can be partial).", ToolLevel.Item),
+        new ToolDefinition("reserve_item_stock", "Reserves the item's quantity at its chosen sourcing origin.", ToolLevel.Item),
         new ToolDefinition("start_fulfillment", "Triggers physical fulfillment for an already-reserved item.", ToolLevel.Item),
         new ToolDefinition("request_prescription_validation", "Sends the item's attached prescription for validation.", ToolLevel.Item),
         new ToolDefinition("set_shipping_method", "Sets the shipping method/SLA for an item (standard, express, refrigerated).", ToolLevel.Item),
@@ -20,7 +19,7 @@ public static class OrderToolCatalog
 
         // ---- Order-level tools ----
         new ToolDefinition("get_order", "Fetches the full order snapshot.", ToolLevel.Order),
-        new ToolDefinition("create_partial_shipment", "Groups a subset of reserved items into a shipment and sends it.", ToolLevel.Order),
+        new ToolDefinition("create_shipment", "Groups reserved items sharing the same origin and shipping method into a shipment and sends it.", ToolLevel.Order),
         new ToolDefinition("notify_customer", "Sends the customer a notification about the order.", ToolLevel.Order),
         new ToolDefinition("hold_order", "Pauses the entire order.", ToolLevel.Order),
         new ToolDefinition("refund_order", "Issues a full or partial refund.", ToolLevel.Order),

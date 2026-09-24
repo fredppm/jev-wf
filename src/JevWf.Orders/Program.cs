@@ -1,6 +1,7 @@
 using JevWf.Classification;
 using JevWf.Decisions;
 using JevWf.Orders.Models;
+using JevWf.Orders.Sourcing;
 using JevWf.Orders.Workflow;
 
 var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
@@ -44,6 +45,13 @@ var order = new Order
             ProductName = "Bluetooth headphones",
             Description = "Wireless headphones, ordinary physical product, no delivery urgency.",
             QuantityRequested = 1
+        },
+        new()
+        {
+            ItemId = "item5",
+            ProductName = "Limited edition sneakers",
+            Description = "Collectible sneakers, ordinary physical product, no delivery urgency.",
+            QuantityRequested = 1
         }
     }
 };
@@ -65,16 +73,32 @@ foreach (var item in order.Items)
 }
 
 // Step 2: run the deterministic workflow, which never talks to the Jev.
-// Fake stock: item4 has no availability on purpose, to exercise the partial shipment path.
-var stock = new Dictionary<string, int>
+var inventory = new FakeInventoryCatalog(new Dictionary<string, List<SourcingCandidate>>
 {
-    ["item1"] = 5,
-    ["item2"] = 5,
-    ["item4"] = 0
-};
+    ["item1"] = new()
+    {
+        new SourcingCandidate("cold-dc-sp", AvailableStock: 5, LeadTimeNominalHours: 4, CurrentQueue: 0, CapacityPerHour: 10)
+    },
+    ["item2"] = new()
+    {
+        new SourcingCandidate("central-pharmacy-sp", AvailableStock: 5, LeadTimeNominalHours: 2, CurrentQueue: 0, CapacityPerHour: 10)
+    },
+    // item4: the corner store is nominally faster (1h) but is swamped right now (200-order
+    // queue at 5/hour = 40h backlog), so its *effective* lead time loses to the regional DC.
+    ["item4"] = new()
+    {
+        new SourcingCandidate("corner-store-sp", AvailableStock: 3, LeadTimeNominalHours: 1, CurrentQueue: 200, CapacityPerHour: 5),
+        new SourcingCandidate("regional-dc-sp", AvailableStock: 40, LeadTimeNominalHours: 24, CurrentQueue: 5, CapacityPerHour: 50)
+    },
+    // item5: every candidate is out of stock -> sourcing finds nothing -> the item is deferred.
+    ["item5"] = new()
+    {
+        new SourcingCandidate("flagship-store-sp", AvailableStock: 0, LeadTimeNominalHours: 1, CurrentQueue: 0, CapacityPerHour: 5)
+    }
+});
 
-var backend = new FakeOrderBackend(stock);
-var runner = new OrderWorkflowRunner(backend);
+var backend = new FakeOrderBackend();
+var runner = new OrderWorkflowRunner(backend, inventory);
 runner.Run(order);
 
 Console.WriteLine("== Execution log ==");
@@ -84,6 +108,6 @@ foreach (var entry in backend.Log)
 Console.WriteLine();
 Console.WriteLine("== Final item status ==");
 foreach (var item in order.Items)
-    Console.WriteLine($"- {item.ItemId} ({item.ProductName}): {item.Status}");
+    Console.WriteLine($"- {item.ItemId} ({item.ProductName}): {item.Status} [origin={item.ChosenOriginId ?? "-"}]");
 
 return 0;

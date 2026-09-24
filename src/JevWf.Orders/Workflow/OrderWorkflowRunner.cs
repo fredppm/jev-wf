@@ -1,23 +1,26 @@
 using JevWf.Orders.Models;
+using JevWf.Orders.Sourcing;
 
 namespace JevWf.Orders.Workflow;
 
 // Purely deterministic: reads each item's already-resolved attributes (RequiresPrescription,
 // IsDigitalOnly, ShippingMethod) and decides which OrderToolCatalog actions to trigger.
-// Has no knowledge of the Jev or how those attributes were resolved — that happens upstream,
+// Has no knowledge of the Jev or how those attributes were resolved - that happens upstream,
 // in JevWf.Classification, before this runs.
 public sealed class OrderWorkflowRunner
 {
     private readonly FakeOrderBackend _backend;
+    private readonly FakeInventoryCatalog _inventory;
 
-    public OrderWorkflowRunner(FakeOrderBackend backend)
+    public OrderWorkflowRunner(FakeOrderBackend backend, FakeInventoryCatalog inventory)
     {
         _backend = backend;
+        _inventory = inventory;
     }
 
     public void Run(Order order)
     {
-        var shippedNow = new List<string>();
+        var readyToShip = new List<OrderItem>();
         var deferred = new List<string>();
 
         foreach (var item in order.Items)
@@ -48,30 +51,34 @@ public sealed class OrderWorkflowRunner
 
             _backend.SetShippingMethod(item.ItemId, shippingMethod);
 
-            var available = _backend.CheckItemStock(item.ItemId);
-            if (available >= item.QuantityRequested)
+            // Sourcing: pick the best-stocked, lowest-effective-lead-time origin. Purely
+            // numeric - never a Jev call. No candidate with stock means the item is deferred.
+            var candidates = _inventory.GetCandidates(item.ItemId);
+            var chosen = SourcingResolver.Resolve(candidates);
+            if (chosen is null)
             {
-                _backend.ReserveItemStock(item.ItemId, item.QuantityRequested);
-                _backend.StartFulfillment(item.ItemId);
-                shippedNow.Add(item.ItemId);
-            }
-            else
-            {
-                _backend.DeferItem(item, "insufficient stock");
+                _backend.DeferItem(item, "no sourcing origin with available stock");
                 deferred.Add(item.ItemId);
+                continue;
             }
+
+            item.ChosenOriginId = chosen.OriginId;
+            _backend.ReserveItemStock(item.ItemId, chosen.OriginId, item.QuantityRequested);
+            _backend.StartFulfillment(item.ItemId);
+            readyToShip.Add(item);
         }
 
-        if (shippedNow.Count > 0)
+        // Items only share a shipment if they ship from the same physical origin with a
+        // compatible SLA - same order, same seller even, doesn't matter otherwise.
+        var shipmentGroups = readyToShip.GroupBy(i => (i.ChosenOriginId!, i.ShippingMethod!));
+        foreach (var group in shipmentGroups)
         {
-            _backend.CreatePartialShipment(order.OrderId, shippedNow);
+            var (originId, shippingMethod) = group.Key;
+            var itemIds = group.Select(i => i.ItemId).ToList();
 
-            foreach (var itemId in shippedNow)
-            {
-                var item = order.Items.First(i => i.ItemId == itemId);
-                if (item.Status != ItemStatus.Delivered)
-                    _backend.CompleteItem(item);
-            }
+            _backend.CreateShipment(order.OrderId, originId, shippingMethod, itemIds);
+            foreach (var item in group)
+                _backend.CompleteItem(item);
         }
 
         if (deferred.Count > 0)

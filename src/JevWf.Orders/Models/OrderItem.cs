@@ -14,4 +14,8 @@ public sealed class OrderItem
     public bool? RequiresPrescription { get; set; }
     public bool? IsDigitalOnly { get; set; }
     public string? ShippingMethod { get; set; }
+
+    // Filled in by OrderWorkflowRunner via Sourcing.SourcingResolver. Null until a stocked
+    // origin is found for this item (physical items only - digital items never get one).
+    public string? ChosenOriginId { get; set; }
 }

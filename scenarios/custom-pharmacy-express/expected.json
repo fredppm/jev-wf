@@ -1,0 +1,326 @@
+{
+  "orderGroupId": "og-pharmacy-express",
+  "workflows": [
+    {
+      "orderId": "og-pharmacy-express-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "anxiolytic1/request_prescription",
+          "piece": "request_prescription",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "waiting_prescription",
+          "config": {
+            "timeoutHours": 48
+          }
+        },
+        {
+          "id": "anxiolytic1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "anxiolytic1/pick_from_shelf",
+          "piece": "pick_from_shelf",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "anxiolytic1/pack",
+          "piece": "pack",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "anxiolytic1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "handling",
+          "config": {
+            "series": "express"
+          }
+        },
+        {
+          "id": "anxiolytic1/ship_express",
+          "piece": "ship_express",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "anxiolytic1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "anxiolytic1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "anxiolytic1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "anxiolytic1/repack",
+          "piece": "repack",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "anxiolytic1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "anxiolytic1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "anxiolytic1/request_prescription"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/request_prescription",
+          "port": "approved",
+          "type": "item_released",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/request_prescription",
+          "port": "denied",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "anxiolytic1/request_prescription",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "anxiolytic1/pick_from_shelf"
+        },
+        {
+          "from": "anxiolytic1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "anxiolytic1/wait_restock"
+        },
+        {
+          "from": "anxiolytic1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/pick_from_shelf",
+          "port": "picked",
+          "type": "picked",
+          "to": "anxiolytic1/pack"
+        },
+        {
+          "from": "anxiolytic1/pick_from_shelf",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/pack",
+          "port": "packed",
+          "type": "packed",
+          "to": "anxiolytic1/issue_invoice"
+        },
+        {
+          "from": "anxiolytic1/pack",
+          "port": "exception",
+          "type": "pack_failed",
+          "to": "anxiolytic1/repack"
+        },
+        {
+          "from": "anxiolytic1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "anxiolytic1/ship_express"
+        },
+        {
+          "from": "anxiolytic1/issue_invoice",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/ship_express",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "anxiolytic1/wait_delivery"
+        },
+        {
+          "from": "anxiolytic1/ship_express",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "anxiolytic1/return_window"
+        },
+        {
+          "from": "anxiolytic1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "anxiolytic1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "anxiolytic1/process_return"
+        },
+        {
+          "from": "anxiolytic1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "anxiolytic1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "anxiolytic1/repack",
+          "port": "packed",
+          "type": "packed",
+          "to": "anxiolytic1/issue_invoice"
+        },
+        {
+          "from": "anxiolytic1/repack",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "anxiolytic1/reserve_stock"
+        },
+        {
+          "from": "anxiolytic1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "anxiolytic1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

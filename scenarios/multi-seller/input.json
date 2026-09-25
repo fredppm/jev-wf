@@ -1,0 +1,26 @@
+{
+  "orderGroupId": "og-multi-seller",
+  "orders": [
+    {
+      "orderId": "og-multi-seller-01",
+      "sellerId": "seller-appliances",
+      "items": [
+        { "itemId": "fridge1", "productName": "400L double-door refrigerator", "description": "Large home appliance, needs careful freight handling, not perishable, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 3500.00 }
+      ]
+    },
+    {
+      "orderId": "og-multi-seller-02",
+      "sellerId": "seller-frozen-foods",
+      "items": [
+        { "itemId": "icecream1", "productName": "Gourmet ice cream tub 2L", "description": "Frozen dessert, perishable, must stay frozen until delivery, needs cold chain.", "quantity": 2, "unitPrice": 39.00 }
+      ]
+    },
+    {
+      "orderId": "og-multi-seller-03",
+      "sellerId": "seller-bike-parts",
+      "items": [
+        { "itemId": "cable1", "productName": "Bicycle brake cable", "description": "Urgent replacement bicycle part, small physical item, needs fast delivery, no refrigeration, no legal restriction.", "quantity": 1, "unitPrice": 25.00 }
+      ]
+    }
+  ]
+}

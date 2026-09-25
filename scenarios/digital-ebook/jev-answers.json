@@ -1,0 +1,6 @@
+{
+  "og-digital-ebook-01/ebook1": {
+    "next_after_item_released": { "choice": "deliver_digital", "confidence": 0.98 },
+    "next_after_ready_to_ship": { "choice": "ship_standard", "confidence": 0.9 }
+  }
+}

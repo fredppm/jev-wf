@@ -1,0 +1,19 @@
+{
+  "orderGroupId": "og-two-sellers",
+  "orders": [
+    {
+      "orderId": "og-two-sellers-01",
+      "sellerId": "seller-books",
+      "items": [
+        { "itemId": "book1", "productName": "Printed novel", "description": "Ordinary printed book, no special handling, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 45.00 }
+      ]
+    },
+    {
+      "orderId": "og-two-sellers-02",
+      "sellerId": "seller-toys",
+      "items": [
+        { "itemId": "toy1", "productName": "Wooden puzzle", "description": "Ordinary toy, no special handling, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 70.00 }
+      ]
+    }
+  ]
+}

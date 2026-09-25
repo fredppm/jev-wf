@@ -1,0 +1,38 @@
+{
+  "pieces": [
+    {
+      "name": "pick_from_shelf",
+      "description": "The item is picked from the store shelf.",
+      "scope": "item",
+      "replaces": "start_handling",
+      "in": "stock_reserved",
+      "out": { "picked": "picked" }
+    },
+    {
+      "name": "pack",
+      "description": "The item is packed for the 30-minute delivery.",
+      "scope": "item",
+      "replaces": "start_handling",
+      "in": "picked",
+      "out": { "packed": "packed" },
+      "onException": "pack_failed"
+    },
+    {
+      "name": "repack",
+      "description": "Packing failed: the item is packed again at the counter.",
+      "scope": "item",
+      "replaces": "start_handling",
+      "in": "pack_failed",
+      "out": { "packed": "packed" }
+    },
+    {
+      "name": "issue_invoice",
+      "description": "The invoice is issued and the item is ready to ship.",
+      "scope": "item",
+      "replaces": "start_handling",
+      "in": "packed",
+      "out": { "issued": "ready_to_ship" },
+      "config": { "series": "express" }
+    }
+  ]
+}

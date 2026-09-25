@@ -1,0 +1,430 @@
+{
+  "orderGroupId": "og-prescription",
+  "workflows": [
+    {
+      "orderId": "og-prescription-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "amoxicillin1/request_prescription",
+          "piece": "request_prescription",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "waiting_prescription",
+          "config": {
+            "timeoutHours": 48
+          }
+        },
+        {
+          "id": "amoxicillin1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "amoxicillin1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "amoxicillin1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "amoxicillin1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "amoxicillin1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "amoxicillin1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "amoxicillin1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        },
+        {
+          "id": "vitaminc1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "vitaminc1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "vitaminc1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "vitaminc1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "vitaminc1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "vitaminc1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "vitaminc1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "vitaminc1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "amoxicillin1/request_prescription"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "vitaminc1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/request_prescription",
+          "port": "approved",
+          "type": "item_released",
+          "to": "amoxicillin1/reserve_stock"
+        },
+        {
+          "from": "amoxicillin1/request_prescription",
+          "port": "denied",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "amoxicillin1/request_prescription",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "amoxicillin1/start_handling"
+        },
+        {
+          "from": "amoxicillin1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "amoxicillin1/wait_restock"
+        },
+        {
+          "from": "amoxicillin1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "amoxicillin1/ship_standard"
+        },
+        {
+          "from": "amoxicillin1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "amoxicillin1/reserve_stock"
+        },
+        {
+          "from": "amoxicillin1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "amoxicillin1/wait_delivery"
+        },
+        {
+          "from": "amoxicillin1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "amoxicillin1/return_window"
+        },
+        {
+          "from": "amoxicillin1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "amoxicillin1/reserve_stock"
+        },
+        {
+          "from": "amoxicillin1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "amoxicillin1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "amoxicillin1/process_return"
+        },
+        {
+          "from": "amoxicillin1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "amoxicillin1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "amoxicillin1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "amoxicillin1/reserve_stock"
+        },
+        {
+          "from": "amoxicillin1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "amoxicillin1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "vitaminc1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "vitaminc1/start_handling"
+        },
+        {
+          "from": "vitaminc1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "vitaminc1/wait_restock"
+        },
+        {
+          "from": "vitaminc1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "vitaminc1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "vitaminc1/ship_standard"
+        },
+        {
+          "from": "vitaminc1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "vitaminc1/reserve_stock"
+        },
+        {
+          "from": "vitaminc1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "vitaminc1/wait_delivery"
+        },
+        {
+          "from": "vitaminc1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "vitaminc1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "vitaminc1/return_window"
+        },
+        {
+          "from": "vitaminc1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "vitaminc1/reserve_stock"
+        },
+        {
+          "from": "vitaminc1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "vitaminc1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "vitaminc1/process_return"
+        },
+        {
+          "from": "vitaminc1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "vitaminc1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "vitaminc1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "vitaminc1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "vitaminc1/reserve_stock"
+        },
+        {
+          "from": "vitaminc1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "vitaminc1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

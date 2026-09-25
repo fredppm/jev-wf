@@ -1,9 +1,0 @@
-{
-  "name": "fraud_check",
-  "description": "Custom tool (JSON only, no C#): sends a high-value item to the anti-fraud provider.",
-  "whenToUse": "item_value is above 5000 and fraud_check is 'not requested'.",
-  "offeredAt": ["payment_approved"],
-  "requires": { "fraud_check": ["not requested"] },
-  "action": "external",
-  "produces": { "fact": "fraud_check", "values": ["approved", "rejected"] }
-}

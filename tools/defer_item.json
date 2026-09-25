@@ -1,7 +1,0 @@
-{
-  "name": "defer_item",
-  "description": "Puts the item on hold until something changes (e.g. restock). Does not cancel it.",
-  "whenToUse": "The product is physical and stock says 'no origin has stock'.",
-  "offeredAt": ["payment_approved", "restock", "handling_exception"],
-  "action": "defer"
-}

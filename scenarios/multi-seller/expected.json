@@ -1,0 +1,761 @@
+{
+  "orderGroupId": "og-multi-seller",
+  "workflows": [
+    {
+      "orderId": "og-multi-seller-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "fraud_check",
+          "piece": "fraud_check",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "provider": "vtex-antifraud"
+          }
+        },
+        {
+          "id": "evaluate_fraud_score",
+          "piece": "evaluate_fraud_score",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "approveBelow": 30,
+            "denyAbove": 80
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "fridge1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "fridge1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "fridge1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "fridge1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "fridge1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "fridge1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "fridge1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "fraud_check"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fraud_check",
+          "port": "scored",
+          "type": "fraud_scored",
+          "to": "evaluate_fraud_score"
+        },
+        {
+          "from": "fraud_check",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "approve",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "review",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "deny",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "fridge1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "fridge1/start_handling"
+        },
+        {
+          "from": "fridge1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "fridge1/wait_restock"
+        },
+        {
+          "from": "fridge1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "fridge1/ship_standard"
+        },
+        {
+          "from": "fridge1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "fridge1/reserve_stock"
+        },
+        {
+          "from": "fridge1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "fridge1/wait_delivery"
+        },
+        {
+          "from": "fridge1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "fridge1/return_window"
+        },
+        {
+          "from": "fridge1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "fridge1/reserve_stock"
+        },
+        {
+          "from": "fridge1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "fridge1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "fridge1/process_return"
+        },
+        {
+          "from": "fridge1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "fridge1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "fridge1/reserve_stock"
+        },
+        {
+          "from": "fridge1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "fridge1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "orderId": "og-multi-seller-02",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "icecream1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "icecream1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "icecream1/ship_cold_chain",
+          "piece": "ship_cold_chain",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "icecream1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "icecream1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "icecream1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "icecream1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "icecream1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "icecream1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "icecream1/start_handling"
+        },
+        {
+          "from": "icecream1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "icecream1/wait_restock"
+        },
+        {
+          "from": "icecream1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "icecream1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "icecream1/ship_cold_chain"
+        },
+        {
+          "from": "icecream1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "icecream1/reserve_stock"
+        },
+        {
+          "from": "icecream1/ship_cold_chain",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "icecream1/wait_delivery"
+        },
+        {
+          "from": "icecream1/ship_cold_chain",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "icecream1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "icecream1/return_window"
+        },
+        {
+          "from": "icecream1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "icecream1/reserve_stock"
+        },
+        {
+          "from": "icecream1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "icecream1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "icecream1/process_return"
+        },
+        {
+          "from": "icecream1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "icecream1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "icecream1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "icecream1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "icecream1/reserve_stock"
+        },
+        {
+          "from": "icecream1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "icecream1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    },
+    {
+      "orderId": "og-multi-seller-03",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "cable1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "cable1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "cable1/ship_express",
+          "piece": "ship_express",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "cable1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "cable1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "cable1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "cable1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "cable1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "cable1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "cable1/start_handling"
+        },
+        {
+          "from": "cable1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "cable1/wait_restock"
+        },
+        {
+          "from": "cable1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "cable1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "cable1/ship_express"
+        },
+        {
+          "from": "cable1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "cable1/reserve_stock"
+        },
+        {
+          "from": "cable1/ship_express",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "cable1/wait_delivery"
+        },
+        {
+          "from": "cable1/ship_express",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "cable1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "cable1/return_window"
+        },
+        {
+          "from": "cable1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "cable1/reserve_stock"
+        },
+        {
+          "from": "cable1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "cable1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "cable1/process_return"
+        },
+        {
+          "from": "cable1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "cable1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "cable1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "cable1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "cable1/reserve_stock"
+        },
+        {
+          "from": "cable1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "cable1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

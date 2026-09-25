@@ -1,0 +1,240 @@
+{
+  "orderGroupId": "og-simple-shirt",
+  "workflows": [
+    {
+      "orderId": "og-simple-shirt-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "shirt1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "shirt1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "shirt1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "shirt1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "shirt1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "shirt1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "shirt1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "shirt1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "shirt1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "shirt1/start_handling"
+        },
+        {
+          "from": "shirt1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "shirt1/wait_restock"
+        },
+        {
+          "from": "shirt1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "shirt1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "shirt1/ship_standard"
+        },
+        {
+          "from": "shirt1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "shirt1/reserve_stock"
+        },
+        {
+          "from": "shirt1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "shirt1/wait_delivery"
+        },
+        {
+          "from": "shirt1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "shirt1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "shirt1/return_window"
+        },
+        {
+          "from": "shirt1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "shirt1/reserve_stock"
+        },
+        {
+          "from": "shirt1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "shirt1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "shirt1/process_return"
+        },
+        {
+          "from": "shirt1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "shirt1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "shirt1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "shirt1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "shirt1/reserve_stock"
+        },
+        {
+          "from": "shirt1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "shirt1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

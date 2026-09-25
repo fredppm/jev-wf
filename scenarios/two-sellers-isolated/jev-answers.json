@@ -1,0 +1,10 @@
+{
+  "og-two-sellers-01/book1": {
+    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
+    "next_after_ready_to_ship": { "choice": "ship_standard", "confidence": 0.97 }
+  },
+  "og-two-sellers-02/toy1": {
+    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
+    "next_after_ready_to_ship": { "choice": "ship_standard", "confidence": 0.97 }
+  }
+}

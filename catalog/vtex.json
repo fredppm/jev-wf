@@ -1,0 +1,177 @@
+{
+  "types": {
+    "start": "order_created",
+    "terminals": {
+      "order_cancelled": "cancelled",
+      "item_cancelled": "cancelled",
+      "item_completed": "delivered",
+      "item_returned": "returned",
+      "manual_review_required": "on_hold"
+    },
+    "defaultException": "manual_review_required"
+  },
+  "pieces": [
+    {
+      "name": "confirm_seller",
+      "description": "The seller confirms it accepts the order.",
+      "kind": "fixed",
+      "scope": "order",
+      "in": "order_created",
+      "out": { "confirmed": "order_confirmed", "rejected": "order_cancelled" },
+      "publicStatus": "waiting_seller",
+      "config": { "timeoutMinutes": 60 }
+    },
+    {
+      "name": "fraud_check",
+      "description": "Sends the order to the anti-fraud provider, which returns a risk score.",
+      "kind": "optional",
+      "scope": "order",
+      "when": { "rule": "order.total > 100" },
+      "in": "order_confirmed",
+      "out": { "scored": "fraud_scored" },
+      "publicStatus": "fraud_analysis",
+      "config": { "provider": "vtex-antifraud" }
+    },
+    {
+      "name": "evaluate_fraud_score",
+      "description": "Turns the anti-fraud score into a decision.",
+      "kind": "fixed",
+      "scope": "order",
+      "in": "fraud_scored",
+      "out": { "approve": "order_confirmed", "review": "manual_review_required", "deny": "order_cancelled" },
+      "publicStatus": "fraud_analysis",
+      "config": { "approveBelow": 30, "denyAbove": 80 }
+    },
+    {
+      "name": "payment",
+      "description": "Waits for the payment of the order to be approved.",
+      "kind": "fixed",
+      "scope": "order",
+      "when": { "rule": "order.total > 0" },
+      "in": "order_confirmed",
+      "out": { "approved": "order_confirmed", "denied": "order_cancelled" },
+      "publicStatus": "payment_pending",
+      "config": { "timeoutMinutes": 30, "retries": 2 }
+    },
+    {
+      "name": "release_items",
+      "description": "Releases every item of the order to be fulfilled.",
+      "kind": "fixed",
+      "scope": "order",
+      "in": "order_confirmed",
+      "out": { "released": "item_released" },
+      "publicStatus": "ready_for_handling"
+    },
+    {
+      "name": "request_prescription",
+      "description": "Asks the buyer for the medical prescription and validates it before the item is handled.",
+      "kind": "required",
+      "scope": "item",
+      "when": { "jev": "The item is a medicine that can only be sold with a medical prescription." },
+      "in": "item_released",
+      "out": { "approved": "item_released", "denied": "item_cancelled" },
+      "publicStatus": "waiting_prescription",
+      "config": { "timeoutHours": 48 }
+    },
+    {
+      "name": "reserve_stock",
+      "description": "Physical product: reserves stock at the best origin (store or distribution center) of the seller.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": ["item_released", "restock_received", "resourcing_required"],
+      "out": { "reserved": "stock_reserved", "no_stock": "awaiting_restock" },
+      "publicStatus": "sourcing",
+      "default": true,
+      "config": { "strategy": "lowest_effective_lead_time" }
+    },
+    {
+      "name": "deliver_digital",
+      "description": "Digital product (download, e-mail, license key): delivered electronically, no stock and no shipping.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "item_released",
+      "out": { "delivered": "item_completed" },
+      "publicStatus": "delivering"
+    },
+    {
+      "name": "wait_restock",
+      "description": "Waits for the item to be restocked at some origin of the seller.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "awaiting_restock",
+      "out": { "restocked": "restock_received", "expired": "item_cancelled" },
+      "publicStatus": "waiting_restock",
+      "config": { "maxWaitDays": 15 }
+    },
+    {
+      "name": "start_handling",
+      "description": "The origin handles the item until it is ready to ship.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "stock_reserved",
+      "out": { "ready": "ready_to_ship" },
+      "onException": "resourcing_required",
+      "publicStatus": "handling"
+    },
+    {
+      "name": "ship_standard",
+      "description": "Ordinary shipping: no refrigeration and no delivery urgency.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "ready_to_ship",
+      "out": { "shipped": "in_transit" },
+      "publicStatus": "shipping",
+      "default": true,
+      "config": { "groupBy": ["origin", "shippingMethod"] }
+    },
+    {
+      "name": "ship_express",
+      "description": "Express shipping: the item is urgent or needs fast delivery, without refrigeration.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "ready_to_ship",
+      "out": { "shipped": "in_transit" },
+      "publicStatus": "shipping",
+      "config": { "groupBy": ["origin", "shippingMethod"] }
+    },
+    {
+      "name": "ship_cold_chain",
+      "description": "Refrigerated express shipping: perishable, frozen or chilled item that needs cold chain.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "ready_to_ship",
+      "out": { "shipped": "in_transit" },
+      "publicStatus": "shipping",
+      "config": { "groupBy": ["origin", "shippingMethod"] }
+    },
+    {
+      "name": "wait_delivery",
+      "description": "Waits for the carrier to deliver the item.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "in_transit",
+      "out": { "delivered": "item_delivered" },
+      "onException": "resourcing_required",
+      "publicStatus": "in_transit"
+    },
+    {
+      "name": "return_window",
+      "description": "Keeps the item open for returns for a few days after delivery.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "item_delivered",
+      "out": { "closed": "item_completed", "return_requested": "return_requested" },
+      "publicStatus": "delivered",
+      "config": { "days": 7 }
+    },
+    {
+      "name": "process_return",
+      "description": "Receives the returned item and refunds the buyer.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "return_requested",
+      "out": { "refunded": "item_returned" },
+      "publicStatus": "returning"
+    }
+  ]
+}

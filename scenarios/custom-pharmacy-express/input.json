@@ -1,0 +1,12 @@
+{
+  "orderGroupId": "og-pharmacy-express",
+  "orders": [
+    {
+      "orderId": "og-pharmacy-express-01",
+      "sellerId": "seller-pharmacy-express",
+      "items": [
+        { "itemId": "anxiolytic1", "productName": "Clonazepam 2mg", "description": "Controlled anxiolytic medication, can only be sold on presentation of a medical prescription, 30-minute urgent delivery.", "quantity": 1, "unitPrice": 50.00 }
+      ]
+    }
+  ]
+}

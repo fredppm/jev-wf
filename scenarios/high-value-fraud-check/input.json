@@ -1,0 +1,12 @@
+{
+  "orderGroupId": "og-high-value",
+  "orders": [
+    {
+      "orderId": "og-high-value-01",
+      "sellerId": "seller-jewelry",
+      "items": [
+        { "itemId": "goldwatch1", "productName": "18k gold wristwatch", "description": "Luxury gold wristwatch, ordinary physical product, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 8000.00 }
+      ]
+    }
+  ]
+}

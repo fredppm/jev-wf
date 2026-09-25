@@ -1,0 +1,291 @@
+{
+  "orderGroupId": "og-high-value",
+  "workflows": [
+    {
+      "orderId": "og-high-value-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "fraud_check",
+          "piece": "fraud_check",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "provider": "vtex-antifraud"
+          }
+        },
+        {
+          "id": "evaluate_fraud_score",
+          "piece": "evaluate_fraud_score",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "approveBelow": 30,
+            "denyAbove": 80
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "goldwatch1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "goldwatch1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "goldwatch1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "goldwatch1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "goldwatch1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "goldwatch1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "goldwatch1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "fraud_check"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fraud_check",
+          "port": "scored",
+          "type": "fraud_scored",
+          "to": "evaluate_fraud_score"
+        },
+        {
+          "from": "fraud_check",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "approve",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "review",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "deny",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "goldwatch1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "goldwatch1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "goldwatch1/start_handling"
+        },
+        {
+          "from": "goldwatch1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "goldwatch1/wait_restock"
+        },
+        {
+          "from": "goldwatch1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "goldwatch1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "goldwatch1/ship_standard"
+        },
+        {
+          "from": "goldwatch1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "goldwatch1/reserve_stock"
+        },
+        {
+          "from": "goldwatch1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "goldwatch1/wait_delivery"
+        },
+        {
+          "from": "goldwatch1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "goldwatch1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "goldwatch1/return_window"
+        },
+        {
+          "from": "goldwatch1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "goldwatch1/reserve_stock"
+        },
+        {
+          "from": "goldwatch1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "goldwatch1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "goldwatch1/process_return"
+        },
+        {
+          "from": "goldwatch1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "goldwatch1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "goldwatch1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "goldwatch1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "goldwatch1/reserve_stock"
+        },
+        {
+          "from": "goldwatch1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "goldwatch1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

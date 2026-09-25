@@ -1,0 +1,12 @@
+{
+  "orderGroupId": "og-free-sample",
+  "orders": [
+    {
+      "orderId": "og-free-sample-01",
+      "sellerId": "seller-cosmetics",
+      "items": [
+        { "itemId": "sample1", "productName": "Moisturizer sample 5ml", "description": "Free cosmetic sample, ordinary physical product, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 0 }
+      ]
+    }
+  ]
+}

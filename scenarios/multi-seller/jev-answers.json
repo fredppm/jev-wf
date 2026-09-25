@@ -1,0 +1,14 @@
+{
+  "og-multi-seller-01/fridge1": {
+    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
+    "next_after_ready_to_ship": { "choice": "ship_standard", "confidence": 0.92 }
+  },
+  "og-multi-seller-02/icecream1": {
+    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
+    "next_after_ready_to_ship": { "choice": "ship_cold_chain", "confidence": 0.98 }
+  },
+  "og-multi-seller-03/cable1": {
+    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
+    "next_after_ready_to_ship": { "choice": "ship_express", "confidence": 0.94 }
+  }
+}

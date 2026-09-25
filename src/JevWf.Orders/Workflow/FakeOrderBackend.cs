@@ -10,15 +10,13 @@ namespace JevWf.Orders.Workflow;
 public sealed class FakeOrderBackend
 {
     private readonly List<string> _log = new();
-    private readonly IReadOnlySet<string> _deniedBlockingRequirementItemIds;
-    private readonly IReadOnlySet<string> _manualReviewRejectedItemIds;
+    private readonly IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> _externalToolResults;
 
-    public FakeOrderBackend(
-        IReadOnlySet<string>? deniedBlockingRequirementItemIds = null,
-        IReadOnlySet<string>? manualReviewRejectedItemIds = null)
+    // externalToolResults: tool name -> item id -> result. Anything not listed gets the tool's
+    // first declared result (e.g. "approved") - that's how tests force the unhappy paths.
+    public FakeOrderBackend(IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? externalToolResults = null)
     {
-        _deniedBlockingRequirementItemIds = deniedBlockingRequirementItemIds ?? new HashSet<string>();
-        _manualReviewRejectedItemIds = manualReviewRejectedItemIds ?? new HashSet<string>();
+        _externalToolResults = externalToolResults ?? new Dictionary<string, IReadOnlyDictionary<string, string>>();
     }
 
     public IReadOnlyList<string> Log => _log;
@@ -37,18 +35,14 @@ public sealed class FakeOrderBackend
         _log.Add($"await_payment_approval({item.ItemId}, seller={item.SellerId})");
     }
 
-    public bool RequestBlockingRequirementValidation(string itemId, string requirementType, string attachmentId)
+    // Any tool with action "external" (validation, manual review, fraud check, user-defined...).
+    public string RunExternalTool(string toolName, string itemId, IReadOnlyList<string> possibleResults)
     {
-        var approved = !_deniedBlockingRequirementItemIds.Contains(itemId);
-        _log.Add($"request_blocking_requirement_validation({itemId}, type={requirementType}, {attachmentId}) -> {(approved ? "approved" : "denied")}");
-        return approved;
-    }
-
-    public bool EscalateForManualReview(string itemId, string reason)
-    {
-        var approved = !_manualReviewRejectedItemIds.Contains(itemId);
-        _log.Add($"escalate_for_manual_review({itemId}, \"{reason}\") -> {(approved ? "approved" : "rejected")}");
-        return approved;
+        var result = _externalToolResults.TryGetValue(toolName, out var byItem) && byItem.TryGetValue(itemId, out var forced)
+            ? forced
+            : possibleResults[0];
+        _log.Add($"{toolName}({itemId}) -> {result}");
+        return result;
     }
 
     // ---- Sourcing / fulfillment ----
@@ -138,6 +132,9 @@ public sealed class FakeOrderBackend
 
     public void LogDecision(string itemId, IEnumerable<string> options, string chosen, double confidence) =>
         _log.Add($"[jev] {itemId}: options=[{string.Join(", ", options)}] -> {chosen} (confidence {confidence:F2})");
+
+    public void LogChecks(string itemId, IReadOnlyDictionary<string, double> applies) =>
+        _log.Add($"[jev] {itemId}: checks {string.Join(", ", applies.Select(a => $"{a.Key}={(a.Value >= 0.5 ? "yes" : "no")} ({a.Value:F2})"))}");
 
     public void LogRejected(string itemId, string tool, string reason) =>
         _log.Add($"[rejected] {tool}({itemId}): {reason}");

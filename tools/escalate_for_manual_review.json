@@ -1,0 +1,9 @@
+{
+  "name": "escalate_for_manual_review",
+  "description": "Sends the item to a human reviewer.",
+  "whenToUse": "classification_confidence is below the manual review threshold and manual_review is 'not requested'.",
+  "offeredAt": ["payment_approved"],
+  "requires": { "manual_review": ["not requested"] },
+  "action": "external",
+  "produces": { "fact": "manual_review", "values": ["approved", "rejected"] }
+}

@@ -9,7 +9,8 @@
         "sellerId": "seller-apparel",
         "productName": "Plain cotton t-shirt (size M)",
         "description": "Ordinary cotton t-shirt, no special handling, no legal restriction, not digital.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

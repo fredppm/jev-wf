@@ -129,7 +129,8 @@ static JsonObject BuildInputJson(ScenarioDefinition scenario)
             ["sellerId"] = item.SellerId,
             ["productName"] = item.ProductName,
             ["description"] = item.Description,
-            ["quantityRequested"] = item.QuantityRequested
+            ["quantityRequested"] = item.QuantityRequested,
+            ["unitPrice"] = item.UnitPrice
         });
     }
 

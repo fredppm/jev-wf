@@ -1,0 +1,9 @@
+{
+  "name": "request_blocking_requirement_validation",
+  "description": "Sends the item's legal requirement evidence (prescription, age verification) for validation.",
+  "whenToUse": "classified_blocking_requirement is not 'none' and requirement_validation is 'not requested'.",
+  "offeredAt": ["payment_approved"],
+  "requires": { "requirement_validation": ["not requested"] },
+  "action": "external",
+  "produces": { "fact": "requirement_validation", "values": ["approved", "denied"] }
+}

@@ -46,7 +46,8 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(shirt1, seller=seller-apparel) -> confirmed
 await_payment_approval(shirt1, seller=seller-apparel)
-[jev] shirt1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 1.00)
+[jev] shirt1: checks escalate_for_manual_review=no (0.03), fraud_check=no (0.05)
+[jev] shirt1: options=[cancel_item, defer_item, mark_item_digital_only, reserve_item_stock] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(shirt1, standard)
 reserve_item_stock(shirt1, origin=seller-apparel-dc-sp, qty=1)
 start_fulfillment(shirt1)

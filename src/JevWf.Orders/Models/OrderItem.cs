@@ -11,6 +11,7 @@ public sealed class OrderItem
     public required string ProductName { get; init; }
     public required string Description { get; init; }
     public required int QuantityRequested { get; init; }
+    public decimal? UnitPrice { get; init; }
     public ItemStatus Status { get; set; } = ItemStatus.Pending;
 
     // "none" or a specific blocking requirement type (e.g. "prescription", "age_restricted").

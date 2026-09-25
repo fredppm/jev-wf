@@ -1,0 +1,7 @@
+{
+  "name": "cancel_item",
+  "description": "Cancels the item permanently.",
+  "whenToUse": "failed_checks is not 'none': some check was denied or rejected.",
+  "offeredAt": ["payment_approved", "restock", "handling_exception"],
+  "action": "cancel"
+}

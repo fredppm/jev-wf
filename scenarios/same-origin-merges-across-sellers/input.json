@@ -9,14 +9,16 @@
         "sellerId": "seller-books",
         "productName": "Paperback novel",
         "description": "Ordinary printed book, no special handling, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "toy1",
         "sellerId": "seller-toys",
         "productName": "Wooden building blocks set",
         "description": "Ordinary toy, no special handling, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

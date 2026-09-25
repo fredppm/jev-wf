@@ -9,35 +9,40 @@
         "sellerId": "seller-frozen-treats",
         "productName": "Pistachio ice cream 1L",
         "description": "Artisanal pistachio ice cream tub, must be kept frozen until delivery, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "item2",
         "sellerId": "seller-pharmacy",
         "productName": "Amoxicillin 500mg",
         "description": "Controlled antibiotic, requires a medical prescription to be presented.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "item3",
         "sellerId": "seller-digital-books",
         "productName": "E-book: Introduction to AI Workflows",
         "description": "Digital PDF book, delivered by download/email after purchase, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "item4",
         "sellerId": "seller-electronics",
         "productName": "Bluetooth headphones",
         "description": "Wireless headphones, ordinary physical product, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "item5",
         "sellerId": "seller-collectibles",
         "productName": "Limited edition sneakers",
         "description": "Collectible sneakers, ordinary physical product, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

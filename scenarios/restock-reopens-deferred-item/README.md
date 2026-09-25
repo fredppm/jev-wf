@@ -48,10 +48,11 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(toy2, seller=seller-toystore) -> confirmed
 await_payment_approval(toy2, seller=seller-toystore)
-[jev] toy2: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> defer_item (confidence 1.00)
+[jev] toy2: checks escalate_for_manual_review=no (0.03), fraud_check=no (0.05)
+[jev] toy2: options=[cancel_item, defer_item, mark_item_digital_only, reserve_item_stock] -> defer_item (confidence 1.00)
 defer_item(toy2, "payment approved by seller-toystore")
 notify_customer(order-eval-restock, "Your order shipped partially. Item(s) toy2 are awaiting restock.")
-[jev] toy2: options=[reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.87)
+[jev] toy2: options=[cancel_item, defer_item, reserve_item_stock] -> reserve_item_stock (confidence 0.93)
 set_shipping_method(toy2, standard)
 reserve_item_stock(toy2, origin=toystore-wh-sp, qty=1)
 start_fulfillment(toy2)

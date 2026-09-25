@@ -48,12 +48,13 @@ Final state after all events: what the Jev classified, where each item was sourc
 ```
 request_seller_confirmation(vase1, seller=seller-fragile-goods) -> confirmed
 await_payment_approval(vase1, seller=seller-fragile-goods)
-[jev] vase1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.99)
+[jev] vase1: checks escalate_for_manual_review=no (0.03), fraud_check=no (0.06)
+[jev] vase1: options=[cancel_item, defer_item, mark_item_digital_only, reserve_item_stock] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(vase1, standard)
 reserve_item_stock(vase1, origin=fragile-origin-a-sp, qty=1)
 start_fulfillment(vase1)
 handle_handling_exception(vase1, "damaged during packing")
-[jev] vase1: options=[reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 0.98)
+[jev] vase1: options=[cancel_item, defer_item, reserve_item_stock] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(vase1, standard)
 reserve_item_stock(vase1, origin=fragile-origin-b-rj, qty=1)
 start_fulfillment(vase1)

@@ -52,11 +52,13 @@ request_seller_confirmation(deniedmed1, seller=seller-pharmacy-bh) -> confirmed
 await_payment_approval(deniedmed1, seller=seller-pharmacy-bh)
 request_seller_confirmation(other1, seller=seller-stationery-bh) -> confirmed
 await_payment_approval(other1, seller=seller-stationery-bh)
-[jev] deniedmed1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, defer_item, cancel_item] -> request_blocking_requirement_validation (confidence 1.00)
-request_blocking_requirement_validation(deniedmed1, type=prescription, attachment-deniedmed1) -> denied
-[jev] deniedmed1: options=[mark_item_digital_only, escalate_for_manual_review, defer_item, cancel_item] -> cancel_item (confidence 1.00)
-cancel_item(deniedmed1, "prescription not validated")
-[jev] other1: options=[mark_item_digital_only, request_blocking_requirement_validation, escalate_for_manual_review, reserve_item_stock, defer_item, cancel_item] -> reserve_item_stock (confidence 1.00)
+[jev] deniedmed1: checks escalate_for_manual_review=no (0.04), fraud_check=no (0.07), request_blocking_requirement_validation=yes (0.97)
+request_blocking_requirement_validation(deniedmed1) -> denied
+[jev] deniedmed1: checks escalate_for_manual_review=no (0.04), fraud_check=no (0.05)
+[jev] deniedmed1: options=[cancel_item, defer_item] -> cancel_item (confidence 1.00)
+cancel_item(deniedmed1, "failed checks: requirement_validation=denied")
+[jev] other1: checks escalate_for_manual_review=no (0.03), fraud_check=no (0.06)
+[jev] other1: options=[cancel_item, defer_item, mark_item_digital_only, reserve_item_stock] -> reserve_item_stock (confidence 1.00)
 set_shipping_method(other1, standard)
 reserve_item_stock(other1, origin=seller-stationery-bh-wh, qty=1)
 start_fulfillment(other1)

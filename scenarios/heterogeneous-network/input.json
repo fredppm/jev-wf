@@ -9,35 +9,40 @@
         "sellerId": "seller-bike-parts",
         "productName": "Bicycle brake cable",
         "description": "Urgent replacement bicycle part, small physical item, needs fast delivery but no refrigeration, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "import1",
         "sellerId": "seller-imports",
         "productName": "Imported mechanical keyboard",
         "description": "Imported physical product, ordinary shipping, no special urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "factory1",
         "sellerId": "seller-custom-factory",
         "productName": "Custom-engraved wooden nameplate",
         "description": "Made-to-order physical product, ordinary shipping, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "fish1",
         "sellerId": "seller-seafood",
         "productName": "Fresh salmon fillet",
         "description": "Perishable seafood, must stay refrigerated and requires cold-chain fast delivery, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "office1",
         "sellerId": "seller-office-supplies",
         "productName": "Stapler",
         "description": "Ordinary office supply, physical product, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

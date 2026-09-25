@@ -1,0 +1,51 @@
+{
+  "scenario": "custom-tool-fraud-check",
+  "passed": true,
+  "mismatches": [],
+  "executionLog": [
+    "request_seller_confirmation(goldwatch1, seller=seller-jewelry) -\u003E confirmed",
+    "await_payment_approval(goldwatch1, seller=seller-jewelry)",
+    "request_seller_confirmation(socks1, seller=seller-apparel) -\u003E confirmed",
+    "await_payment_approval(socks1, seller=seller-apparel)",
+    "[jev] goldwatch1: checks escalate_for_manual_review=no (0.04), fraud_check=yes (0.98)",
+    "fraud_check(goldwatch1) -\u003E rejected",
+    "[jev] goldwatch1: checks escalate_for_manual_review=no (0.03)",
+    "[jev] goldwatch1: options=[cancel_item, defer_item] -\u003E cancel_item (confidence 1.00)",
+    "cancel_item(goldwatch1, \u0022failed checks: fraud_check=rejected\u0022)",
+    "[jev] socks1: checks escalate_for_manual_review=no (0.03), fraud_check=no (0.02)",
+    "[jev] socks1: options=[cancel_item, defer_item, mark_item_digital_only, reserve_item_stock] -\u003E reserve_item_stock (confidence 1.00)",
+    "set_shipping_method(socks1, standard)",
+    "reserve_item_stock(socks1, origin=apparel-dc-poa, qty=1)",
+    "start_fulfillment(socks1)",
+    "create_shipment(order-eval-fraud-check, origin=apparel-dc-poa, method=standard, items=[socks1])",
+    "mark_item_shipped(socks1)",
+    "notify_customer(order-eval-fraud-check, \u0022Your order has been confirmed and is on its way.\u0022)",
+    "mark_item_delivered(socks1)",
+    "close_order(order-eval-fraud-check)"
+  ],
+  "items": {
+    "goldwatch1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Cancelled",
+      "chosenOriginId": null
+    },
+    "socks1": {
+      "blockingRequirementType": "none",
+      "isDigitalOnly": false,
+      "shippingMethod": "standard",
+      "finalStatus": "Delivered",
+      "chosenOriginId": "apparel-dc-poa"
+    }
+  },
+  "shipments": [
+    {
+      "originId": "apparel-dc-poa",
+      "shippingMethod": "standard",
+      "itemIds": [
+        "socks1"
+      ]
+    }
+  ]
+}

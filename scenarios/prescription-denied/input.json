@@ -9,14 +9,16 @@
         "sellerId": "seller-pharmacy-bh",
         "productName": "Diazepam 10mg",
         "description": "Controlled anxiolytic medication, requires a medical prescription to be presented.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       },
       {
         "itemId": "other1",
         "sellerId": "seller-stationery-bh",
         "productName": "Notebook (stationery)",
         "description": "Ordinary paper notebook, no special handling, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

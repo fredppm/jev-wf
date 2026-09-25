@@ -9,7 +9,8 @@
         "sellerId": "seller-flaky-gadgets",
         "productName": "Bluetooth speaker",
         "description": "Ordinary bluetooth speaker, physical product, no special handling, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

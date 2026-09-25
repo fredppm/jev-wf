@@ -22,8 +22,88 @@ public static class ScenarioCatalog
         PaymentDenied(),
         RestockReopensDeferredItem(),
         HandlingExceptionReroutesToResourcing(),
-        ReturnAfterDelivery()
+        ReturnAfterDelivery(),
+        CustomToolFraudCheck()
     };
+
+    // Proves the engine is generic: fraud_check exists only as tools/fraud_check.json, no C#.
+    // The Jev must run it for the high-value item (and cancel when it's rejected) and skip it
+    // for the cheap one.
+    private static ScenarioDefinition CustomToolFraudCheck()
+    {
+        var order = new Order
+        {
+            OrderId = "order-eval-fraud-check",
+            CustomerEmail = "eval@example.com",
+            ShippingAddress = "Rua Exemplo, 1000 - Porto Alegre, RS",
+            Items = new List<OrderItem>
+            {
+                new()
+                {
+                    ItemId = "goldwatch1",
+                    SellerId = "seller-jewelry",
+                    ProductName = "18k gold wristwatch",
+                    Description = "Luxury 18k gold wristwatch, ordinary physical product, no special shipping care, no delivery urgency, no legal restriction.",
+                    QuantityRequested = 1,
+                    UnitPrice = 12000m
+                },
+                new()
+                {
+                    ItemId = "socks1",
+                    SellerId = "seller-apparel",
+                    ProductName = "Cotton socks (3 pairs)",
+                    Description = "Ordinary cotton socks, physical product, no special shipping care, no delivery urgency, no legal restriction.",
+                    QuantityRequested = 1,
+                    UnitPrice = 30m
+                }
+            }
+        };
+
+        var candidates = new Dictionary<string, List<SourcingCandidate>>
+        {
+            ["goldwatch1"] = new()
+            {
+                new SourcingCandidate("jewelry-vault-sp", AvailableStock: 2, LeadTimeNominalHours: 8, CurrentQueue: 0, CapacityPerHour: 5)
+            },
+            ["socks1"] = new()
+            {
+                new SourcingCandidate("apparel-dc-poa", AvailableStock: 50, LeadTimeNominalHours: 6, CurrentQueue: 0, CapacityPerHour: 20)
+            }
+        };
+
+        var events = new List<OrderEvent>
+        {
+            new PaymentApprovedEvent("seller-jewelry"),
+            new PaymentApprovedEvent("seller-apparel"),
+            new FinalizeEvent(),
+            new CarrierDeliveredEvent("socks1"),
+            new FinalizeEvent()
+        };
+
+        var expectedItems = new Dictionary<string, ExpectedItemOutcome>
+        {
+            ["goldwatch1"] = new("none", false, "standard", ItemStatus.Cancelled, null),
+            ["socks1"] = new("none", false, "standard", ItemStatus.Delivered, "apparel-dc-poa")
+        };
+
+        var expectedShipments = new List<ExpectedShipment>
+        {
+            new("apparel-dc-poa", "standard", new[] { "socks1" })
+        };
+
+        return new ScenarioDefinition(
+            Name: "custom-tool-fraud-check",
+            Description: "New tool defined only in JSON (fraud_check): the high-value item gets checked and cancelled when rejected; the cheap item skips the check and ships.",
+            Order: order,
+            SourcingCandidatesByItemId: candidates,
+            Events: events,
+            ExpectedItemOutcomes: expectedItems,
+            ExpectedShipments: expectedShipments,
+            ExternalToolResults: new Dictionary<string, IReadOnlyDictionary<string, string>>
+            {
+                ["fraud_check"] = new Dictionary<string, string> { ["goldwatch1"] = "rejected" }
+            });
+    }
 
     // Baseline case: one item, one seller, nothing special. If this doesn't pass, nothing else matters.
     private static ScenarioDefinition SimpleShirt()
@@ -433,7 +513,10 @@ public static class ScenarioCatalog
             Events: events,
             ExpectedItemOutcomes: expectedItems,
             ExpectedShipments: expectedShipments,
-            DeniedBlockingRequirementItemIds: new HashSet<string> { "deniedmed1" });
+            ExternalToolResults: new Dictionary<string, IReadOnlyDictionary<string, string>>
+            {
+                ["request_blocking_requirement_validation"] = new Dictionary<string, string> { ["deniedmed1"] = "denied" }
+            });
     }
 
     // One order, five items, five different origin *types* (an express hub, a customs dock, a

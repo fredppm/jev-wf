@@ -2,6 +2,7 @@ using JevWf.Classification;
 using JevWf.Decisions;
 using JevWf.Orders.Models;
 using JevWf.Orders.Sourcing;
+using JevWf.Orders.Tools;
 using JevWf.Orders.Workflow;
 
 namespace JevWf.Evaluation.Scenarios;
@@ -36,8 +37,8 @@ public sealed class ScenarioRunner
         }
 
         var inventory = new FakeInventoryCatalog(scenario.SourcingCandidatesByItemId);
-        var backend = new FakeOrderBackend(scenario.DeniedBlockingRequirementItemIds, scenario.ManualReviewRejectedItemIds);
-        var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(_decisions));
+        var backend = new FakeOrderBackend(scenario.ExternalToolResults);
+        var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(_decisions), DecisionToolRegistry.Load());
 
         runner.Start(scenario.Order);
 

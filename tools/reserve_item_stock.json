@@ -1,0 +1,8 @@
+{
+  "name": "reserve_item_stock",
+  "description": "Reserves stock at the best available origin and starts physical fulfillment.",
+  "whenToUse": "The product is physical (classified_digital_only is 'no'), stock says 'available at ...', and failed_checks is 'none'.",
+  "offeredAt": ["payment_approved", "restock", "handling_exception"],
+  "requires": { "requirement_validation": ["not required", "approved"], "failed_checks": ["none"] },
+  "action": "reserve_stock"
+}

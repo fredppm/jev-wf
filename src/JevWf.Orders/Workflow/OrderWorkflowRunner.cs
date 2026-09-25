@@ -2,23 +2,25 @@ using System.Globalization;
 using JevWf.Classification;
 using JevWf.Orders.Models;
 using JevWf.Orders.Sourcing;
+using JevWf.Orders.Tools;
 
 namespace JevWf.Orders.Workflow;
 
-// Event-driven order workflow where the Jev picks the tool at each item-level decision point.
+// Event-driven order workflow with a generic decision engine: the tools the Jev can choose are
+// data (tools/*.json, see DecisionTool), not code.
 //
-// Split of responsibilities:
-// - The workflow decides WHEN a decision is needed (payment approved, restock, handling
-//   exception), WHICH tools are legal at that point, and the facts the Jev sees.
-// - The Jev (IToolSelector) picks ONE tool from the legal ones.
-// - The workflow executes it. Some tools produce new facts (e.g. requirement validation
-//   result), so the loop asks again until the item reaches a waiting/terminal state.
+// At each item-level decision point (payment approved, restock, handling exception):
+// 1. build the facts for the item (classification, stock, results of tools already run...)
+// 2. offer the tools whose OfferedAt matches and whose Requires passes against the facts
+// 3. the Jev picks one by matching the facts against each tool's WhenToUse
+// 4. run the tool's Action; an external tool stores its result as a new fact -> back to 1,
+//    until the item reaches a waiting/terminal state.
 //
 // Steps with no real alternative stay deterministic: seller confirmation/payment gate (Start),
 // payment denial, shipment grouping (Finalize - pure math), carrier delivery and returns.
 public sealed class OrderWorkflowRunner
 {
-    private const int MaxDecisionSteps = 5;
+    private const int MaxDecisionSteps = 6;
 
     // Shown to the Jev as a policy hint next to the classification confidence.
     private const double ManualReviewConfidenceThreshold = 0.75;
@@ -28,29 +30,22 @@ public sealed class OrderWorkflowRunner
         ItemStatus.Delivered, ItemStatus.Cancelled, ItemStatus.Returned, ItemStatus.Refunded
     };
 
-    // Written as the CONDITION under which each tool is the right one (like classification
-    // criteria), not as what the tool does - the Jev matches the facts against these. The
-    // action-style wording made the Jev pick defer_item almost every time.
-    private static readonly Dictionary<string, string> ToolDescriptions = new()
-    {
-        ["mark_item_digital_only"] = "classified_digital_only is 'yes': the product is delivered electronically, nothing to ship.",
-        ["request_blocking_requirement_validation"] = "classified_blocking_requirement is not 'none' and requirement_validation is 'not requested'.",
-        ["escalate_for_manual_review"] = "classification_confidence is below the manual review threshold and manual_review is 'not requested'.",
-        ["reserve_item_stock"] = "The product is physical (classified_digital_only is 'no'), stock says 'available at ...', and no requirement is pending or denied.",
-        ["defer_item"] = "The product is physical and stock says 'no origin has stock'.",
-        ["cancel_item"] = "requirement_validation is 'denied' or manual_review is 'rejected'."
-    };
-
     private readonly FakeOrderBackend _backend;
     private readonly FakeInventoryCatalog _inventory;
     private readonly IToolSelector _selector;
+    private readonly IReadOnlyList<DecisionTool> _tools;
     private readonly Dictionary<string, ItemDecisionState> _states = new();
 
-    public OrderWorkflowRunner(FakeOrderBackend backend, FakeInventoryCatalog inventory, IToolSelector selector)
+    public OrderWorkflowRunner(
+        FakeOrderBackend backend,
+        FakeInventoryCatalog inventory,
+        IToolSelector selector,
+        IReadOnlyList<DecisionTool> tools)
     {
         _backend = backend;
         _inventory = inventory;
         _selector = selector;
+        _tools = tools;
     }
 
     public void Start(Order order)
@@ -70,7 +65,7 @@ public sealed class OrderWorkflowRunner
                 foreach (var item in order.Items.Where(i =>
                              i.SellerId == approved.SellerId && i.Status == ItemStatus.AwaitingPaymentApproval).ToList())
                 {
-                    State(item).Trigger = $"payment approved by {approved.SellerId}";
+                    State(item).SetTrigger(DecisionPoints.PaymentApproved, $"payment approved by {approved.SellerId}");
                     await DecideAsync(item, ct);
                 }
                 break;
@@ -92,7 +87,7 @@ public sealed class OrderWorkflowRunner
                 }
 
                 _inventory.Restock(restock.ItemId, restock.OriginId, restock.NewAvailableStock);
-                State(deferredItem).Trigger = $"restock at {restock.OriginId} (new stock {restock.NewAvailableStock})";
+                State(deferredItem).SetTrigger(DecisionPoints.Restock, $"restock at {restock.OriginId} (new stock {restock.NewAvailableStock})");
                 await DecideAsync(deferredItem, ct);
                 break;
 
@@ -104,7 +99,7 @@ public sealed class OrderWorkflowRunner
                 if (handlingItem.ChosenOriginId is not null)
                     state.ExcludedOrigins.Add(handlingItem.ChosenOriginId);
                 handlingItem.ChosenOriginId = null;
-                state.Trigger = $"handling exception: {handlingException.Reason}";
+                state.SetTrigger(DecisionPoints.HandlingException, $"handling exception: {handlingException.Reason}");
                 await DecideAsync(handlingItem, ct);
                 break;
 
@@ -173,44 +168,64 @@ public sealed class OrderWorkflowRunner
 
         for (var step = 0; step < MaxDecisionSteps; step++)
         {
-            var allowed = AllowedTools(item, state);
+            var facts = BuildFacts(item, state);
+            var offered = _tools.Where(t => t.OfferedAt.Contains(state.DecisionPoint) && RequiresPass(t, facts)).ToList();
+
+            // Checks first: each external tool's condition is evaluated on its own (yes/no), so a
+            // specific check never loses to a generic action that also matches. Every check that
+            // applies runs; then the facts are rebuilt and we ask again.
+            var checks = offered.Where(t => t.Action == DecisionToolActions.External).ToList();
+            if (checks.Count > 0)
+            {
+                var applies = await _selector.EvaluateConditionsAsync(
+                    new ToolDecisionRequest(item.ItemId, item.ProductName, item.Description, facts,
+                        checks.ToDictionary(t => t.Name, t => t.WhenToUse)), ct);
+
+                _backend.LogChecks(item.ItemId, applies);
+
+                var toRun = checks.Where(t => applies[t.Name] >= 0.5).ToList();
+                foreach (var check in toRun)
+                    Execute(item, state, check, facts);
+                if (toRun.Count > 0)
+                    continue;
+            }
+
+            var actions = offered.Where(t => t.Action != DecisionToolActions.External).ToList();
+            if (actions.Count == 0)
+            {
+                _backend.LogRejected(item.ItemId, "decision", $"no action offered at {state.DecisionPoint}");
+                return;
+            }
+            offered = actions;
+
             var decision = await _selector.ChooseAsync(
-                new ToolDecisionRequest(item.ItemId, item.ProductName, item.Description, BuildFacts(item, state), allowed), ct);
+                new ToolDecisionRequest(item.ItemId, item.ProductName, item.Description, facts,
+                    offered.ToDictionary(t => t.Name, t => t.WhenToUse)), ct);
 
-            _backend.LogDecision(item.ItemId, allowed.Keys, decision.Tool, decision.Confidence);
+            _backend.LogDecision(item.ItemId, offered.Select(t => t.Name), decision.Tool, decision.Confidence);
 
-            if (Execute(item, state, decision.Tool))
+            var tool = offered.SingleOrDefault(t => t.Name == decision.Tool);
+            if (tool is null)
+            {
+                state.LastRejection = $"{decision.Tool} was not offered";
+                _backend.LogRejected(item.ItemId, decision.Tool, "not offered");
+                continue;
+            }
+
+            if (Execute(item, state, tool, facts))
                 return;
         }
 
         _backend.LogRejected(item.ItemId, "decision_loop", $"no final action after {MaxDecisionSteps} decisions");
     }
 
-    // Guardrails live here, not in the Jev: a tool is only offered when it's legal right now.
-    private static Dictionary<string, string> AllowedTools(OrderItem item, ItemDecisionState state)
-    {
-        var tools = new List<string>();
+    private static bool RequiresPass(DecisionTool tool, IReadOnlyDictionary<string, string> facts) =>
+        tool.Requires is null ||
+        tool.Requires.All(r => facts.TryGetValue(r.Key, out var value) && r.Value.Contains(value));
 
-        if (item.Status == ItemStatus.AwaitingPaymentApproval)
-        {
-            tools.Add("mark_item_digital_only");
-            if (state.RequirementValidation is null)
-                tools.Add("request_blocking_requirement_validation");
-            if (state.ManualReview is null)
-                tools.Add("escalate_for_manual_review");
-        }
-
-        // Never ship something with a legal requirement that hasn't been validated.
-        var requirementBlocks = item.BlockingRequirementType != "none" && state.RequirementValidation != "approved";
-        if (!requirementBlocks)
-            tools.Add("reserve_item_stock");
-
-        tools.Add("defer_item");
-        tools.Add("cancel_item");
-
-        return tools.ToDictionary(t => t, t => ToolDescriptions[t]);
-    }
-
+    // The fact vocabulary tools can reference in WhenToUse/Requires. Every fact an external tool
+    // produces starts as 'not requested'; a result other than the tool's first declared value
+    // (by convention the passing one, e.g. "approved") counts as a failed check.
     private Dictionary<string, string> BuildFacts(OrderItem item, ItemDecisionState state)
     {
         var best = BestOrigin(item, state);
@@ -223,13 +238,34 @@ public sealed class OrderWorkflowRunner
             ["classified_digital_only"] = item.IsDigitalOnly!.Value ? "yes" : "no",
             ["classified_shipping_sla"] = item.ShippingMethod!,
             ["classification_confidence"] =
-                $"{item.ClassificationConfidence!.Value.ToString("F2", CultureInfo.InvariantCulture)} (manual review recommended below {ManualReviewConfidenceThreshold.ToString(CultureInfo.InvariantCulture)})",
-            ["requirement_validation"] = state.RequirementValidation ?? "not requested",
-            ["manual_review"] = state.ManualReview ?? "not requested",
+                $"{item.ClassificationConfidence!.Value.ToString("F2", CultureInfo.InvariantCulture)} (manual review threshold {ManualReviewConfidenceThreshold.ToString(CultureInfo.InvariantCulture)})",
+            ["item_value"] = item.UnitPrice is decimal price
+                ? (price * item.QuantityRequested).ToString("0.00", CultureInfo.InvariantCulture)
+                : "unknown",
             ["stock"] = best is null
                 ? "no origin has stock"
                 : $"available at {best.OriginId} (effective lead time {best.EffectiveLeadTimeHours.ToString("0.#", CultureInfo.InvariantCulture)}h)"
         };
+
+        var failed = new List<string>();
+        foreach (var produced in _tools.Where(t => t.Produces is not null).Select(t => t.Produces!))
+        {
+            if (state.Produced.TryGetValue(produced.Fact, out var value))
+            {
+                facts[produced.Fact] = value;
+                if (value != produced.Values[0])
+                    failed.Add($"{produced.Fact}={value}");
+            }
+            else
+            {
+                // The one built-in exception: no legal requirement means nothing to validate.
+                facts[produced.Fact] = produced.Fact == "requirement_validation" && item.BlockingRequirementType == "none"
+                    ? "not required"
+                    : "not requested";
+            }
+        }
+
+        facts["failed_checks"] = failed.Count == 0 ? "none" : string.Join(", ", failed);
 
         if (state.ExcludedOrigins.Count > 0)
             facts["failed_origins"] = string.Join(", ", state.ExcludedOrigins);
@@ -240,35 +276,27 @@ public sealed class OrderWorkflowRunner
     }
 
     // Returns true when the item reached a waiting/terminal state (stop asking).
-    private bool Execute(OrderItem item, ItemDecisionState state, string tool)
+    private bool Execute(OrderItem item, ItemDecisionState state, DecisionTool tool, IReadOnlyDictionary<string, string> facts)
     {
         state.LastRejection = null;
 
-        switch (tool)
+        switch (tool.Action)
         {
-            case "mark_item_digital_only":
+            case DecisionToolActions.External:
+                state.Produced[tool.Produces!.Fact] = _backend.RunExternalTool(tool.Name, item.ItemId, tool.Produces.Values);
+                return false;
+
+            case DecisionToolActions.CompleteDigital:
                 _backend.MarkItemDigitalOnly(item.ItemId);
                 _backend.CompleteItem(item);
                 return true;
 
-            case "request_blocking_requirement_validation":
-                var validated = _backend.RequestBlockingRequirementValidation(
-                    item.ItemId, item.BlockingRequirementType!, $"attachment-{item.ItemId}");
-                state.RequirementValidation = validated ? "approved" : "denied";
-                return false;
-
-            case "escalate_for_manual_review":
-                var approved = _backend.EscalateForManualReview(
-                    item.ItemId, $"classification confidence {item.ClassificationConfidence:F2}");
-                state.ManualReview = approved ? "approved" : "rejected";
-                return false;
-
-            case "reserve_item_stock":
+            case DecisionToolActions.ReserveStock:
                 var chosen = BestOrigin(item, state);
                 if (chosen is null)
                 {
-                    state.LastRejection = "reserve_item_stock rejected: no origin has stock";
-                    _backend.LogRejected(item.ItemId, tool, "no origin has stock");
+                    state.LastRejection = $"{tool.Name} rejected: no origin has stock";
+                    _backend.LogRejected(item.ItemId, tool.Name, "no origin has stock");
                     return false;
                 }
 
@@ -285,21 +313,16 @@ public sealed class OrderWorkflowRunner
                 item.Status = ItemStatus.VerifyingInvoice;
                 return true;
 
-            case "defer_item":
+            case DecisionToolActions.Defer:
                 _backend.DeferItem(item, state.Trigger);
                 return true;
 
-            case "cancel_item":
-                var reason = state.RequirementValidation == "denied" ? $"{item.BlockingRequirementType} not validated"
-                    : state.ManualReview == "rejected" ? "manual review rejected"
-                    : state.Trigger;
-                _backend.CancelItem(item, reason);
+            case DecisionToolActions.Cancel:
+                _backend.CancelItem(item, facts["failed_checks"] != "none" ? $"failed checks: {facts["failed_checks"]}" : state.Trigger);
                 return true;
 
             default:
-                state.LastRejection = $"unknown tool {tool}";
-                _backend.LogRejected(item.ItemId, tool, "unknown tool");
-                return false;
+                throw new InvalidOperationException($"Unknown action {tool.Action}");
         }
     }
 
@@ -327,10 +350,24 @@ public sealed class OrderWorkflowRunner
 
     private sealed class ItemDecisionState
     {
-        public string Trigger { get; set; } = "";
-        public string? RequirementValidation { get; set; }
-        public string? ManualReview { get; set; }
+        public string DecisionPoint { get; private set; } = "";
+        public string Trigger { get; private set; } = "";
         public string? LastRejection { get; set; }
+        public Dictionary<string, string> Produced { get; } = new();
         public HashSet<string> ExcludedOrigins { get; } = new();
+
+        public void SetTrigger(string decisionPoint, string trigger)
+        {
+            DecisionPoint = decisionPoint;
+            Trigger = trigger;
+        }
     }
+}
+
+// Names used in DecisionTool.OfferedAt.
+public static class DecisionPoints
+{
+    public const string PaymentApproved = "payment_approved";
+    public const string Restock = "restock";
+    public const string HandlingException = "handling_exception";
 }

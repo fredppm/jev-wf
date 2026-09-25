@@ -1,0 +1,8 @@
+{
+  "name": "mark_item_digital_only",
+  "description": "Completes the item as a digital delivery (download/email). No shipping, no stock.",
+  "whenToUse": "classified_digital_only is 'yes': the product is delivered electronically, nothing to ship.",
+  "offeredAt": ["payment_approved"],
+  "requires": { "failed_checks": ["none"] },
+  "action": "complete_digital"
+}

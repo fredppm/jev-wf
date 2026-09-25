@@ -17,5 +17,7 @@ public sealed record ScenarioDefinition(
     IReadOnlyList<OrderEvent> Events,
     IReadOnlyDictionary<string, ExpectedItemOutcome> ExpectedItemOutcomes,
     IReadOnlyList<ExpectedShipment> ExpectedShipments,
-    IReadOnlySet<string>? DeniedBlockingRequirementItemIds = null,
-    IReadOnlySet<string>? ManualReviewRejectedItemIds = null);
+    // Premises about the outside world: tool name -> item id -> the result that external tool
+    // returns (e.g. request_blocking_requirement_validation -> deniedmed1 -> "denied").
+    // Unlisted items get the tool's first declared result (the passing one).
+    IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>>? ExternalToolResults = null);

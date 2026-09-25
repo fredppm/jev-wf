@@ -9,7 +9,8 @@
         "sellerId": "seller-fragile-goods",
         "productName": "Ceramic vase",
         "description": "Ordinary ceramic vase, physical product, no special shipping care required, no delivery urgency, no legal restriction.",
-        "quantityRequested": 1
+        "quantityRequested": 1,
+        "unitPrice": null
       }
     ]
   },

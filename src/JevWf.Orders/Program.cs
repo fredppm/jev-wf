@@ -2,6 +2,7 @@ using JevWf.Classification;
 using JevWf.Decisions;
 using JevWf.Orders.Models;
 using JevWf.Orders.Sourcing;
+using JevWf.Orders.Tools;
 using JevWf.Orders.Workflow;
 
 var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
@@ -105,7 +106,7 @@ var inventory = new FakeInventoryCatalog(new Dictionary<string, List<SourcingCan
 });
 
 var backend = new FakeOrderBackend();
-var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(decisionsClient));
+var runner = new OrderWorkflowRunner(backend, inventory, new JevToolSelector(decisionsClient), DecisionToolRegistry.Load());
 
 // Start: every item moves up to AwaitingPaymentApproval, gated per seller.
 runner.Start(order);

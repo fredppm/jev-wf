@@ -30,8 +30,8 @@ public sealed class ScenarioTests
     [MemberData(nameof(Scenarios))]
     public async Task Builds_the_expected_workflows_with_the_real_jev(string scenario)
     {
-        var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
-        Skip.If(string.IsNullOrEmpty(apiKey), "OPENROUTER_API_KEY is not set.");
+        var apiKey = JevApiKey.Find(TestPaths.Root);
+        Skip.If(apiKey is null, "OPENROUTER_API_KEY is not set (environment or .env).");
         using var jev = new OpenRouterJev(apiKey!);
 
         var actual = await Build(scenario, jev);

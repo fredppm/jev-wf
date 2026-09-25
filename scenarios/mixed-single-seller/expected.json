@@ -1,0 +1,644 @@
+{
+  "orderGroupId": "og-mixed-single-seller",
+  "workflows": [
+    {
+      "orderId": "og-mixed-single-seller-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "fraud_check",
+          "piece": "fraud_check",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "provider": "vtex-antifraud"
+          }
+        },
+        {
+          "id": "evaluate_fraud_score",
+          "piece": "evaluate_fraud_score",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "approveBelow": 30,
+            "denyAbove": 80
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "ebook2/deliver_digital",
+          "piece": "deliver_digital",
+          "scope": "item",
+          "itemId": "ebook2",
+          "publicStatus": "delivering"
+        },
+        {
+          "id": "pizza1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "pizza1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "pizza1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "pizza1/ship_cold_chain",
+          "piece": "ship_cold_chain",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "pizza1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "pizza1/close_without_return",
+          "piece": "close_without_return",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "delivered"
+        },
+        {
+          "id": "pizza1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "pizza1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        },
+        {
+          "id": "ibuprofen1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "ibuprofen1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "ibuprofen1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "ibuprofen1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "ibuprofen1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "ibuprofen1/close_without_return",
+          "piece": "close_without_return",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "delivered"
+        },
+        {
+          "id": "ibuprofen1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "ibuprofen1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        },
+        {
+          "id": "case1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "case1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "case1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "case1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "case1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "case1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "case1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "case1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "case1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "fraud_check"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fraud_check",
+          "port": "scored",
+          "type": "fraud_scored",
+          "to": "evaluate_fraud_score"
+        },
+        {
+          "from": "fraud_check",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "approve",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "review",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "deny",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "ebook2/deliver_digital"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "pizza1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "ibuprofen1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "case1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ebook2/deliver_digital",
+          "port": "delivered",
+          "type": "item_completed"
+        },
+        {
+          "from": "ebook2/deliver_digital",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "pizza1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "pizza1/start_handling"
+        },
+        {
+          "from": "pizza1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "pizza1/wait_restock"
+        },
+        {
+          "from": "pizza1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "pizza1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "pizza1/issue_invoice"
+        },
+        {
+          "from": "pizza1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "pizza1/reserve_stock"
+        },
+        {
+          "from": "pizza1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "pizza1/ship_cold_chain"
+        },
+        {
+          "from": "pizza1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "pizza1/ship_cold_chain",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "pizza1/wait_delivery"
+        },
+        {
+          "from": "pizza1/ship_cold_chain",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "pizza1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "pizza1/close_without_return"
+        },
+        {
+          "from": "pizza1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "pizza1/reserve_stock"
+        },
+        {
+          "from": "pizza1/close_without_return",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "pizza1/close_without_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "pizza1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "pizza1/reserve_stock"
+        },
+        {
+          "from": "pizza1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "pizza1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ibuprofen1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "ibuprofen1/start_handling"
+        },
+        {
+          "from": "ibuprofen1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "ibuprofen1/wait_restock"
+        },
+        {
+          "from": "ibuprofen1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ibuprofen1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "ibuprofen1/issue_invoice"
+        },
+        {
+          "from": "ibuprofen1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "ibuprofen1/reserve_stock"
+        },
+        {
+          "from": "ibuprofen1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "ibuprofen1/ship_standard"
+        },
+        {
+          "from": "ibuprofen1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ibuprofen1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "ibuprofen1/wait_delivery"
+        },
+        {
+          "from": "ibuprofen1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ibuprofen1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "ibuprofen1/close_without_return"
+        },
+        {
+          "from": "ibuprofen1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "ibuprofen1/reserve_stock"
+        },
+        {
+          "from": "ibuprofen1/close_without_return",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "ibuprofen1/close_without_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "ibuprofen1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "ibuprofen1/reserve_stock"
+        },
+        {
+          "from": "ibuprofen1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "ibuprofen1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "case1/start_handling"
+        },
+        {
+          "from": "case1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "case1/wait_restock"
+        },
+        {
+          "from": "case1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "case1/issue_invoice"
+        },
+        {
+          "from": "case1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "case1/reserve_stock"
+        },
+        {
+          "from": "case1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "case1/ship_standard"
+        },
+        {
+          "from": "case1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "case1/wait_delivery"
+        },
+        {
+          "from": "case1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "case1/return_window"
+        },
+        {
+          "from": "case1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "case1/reserve_stock"
+        },
+        {
+          "from": "case1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "case1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "case1/process_return"
+        },
+        {
+          "from": "case1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "case1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "case1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "case1/reserve_stock"
+        },
+        {
+          "from": "case1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "case1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

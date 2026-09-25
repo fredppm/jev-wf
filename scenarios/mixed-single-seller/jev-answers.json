@@ -1,0 +1,112 @@
+{
+  "og-mixed-single-seller-01": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-mixed-single-seller-01/ebook2": {
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "deliver_digital",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_standard",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": true,
+      "confidence": 0.9
+    }
+  },
+  "og-mixed-single-seller-01/pizza1": {
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_cold_chain",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-mixed-single-seller-01/ibuprofen1": {
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_standard",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-mixed-single-seller-01/case1": {
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_standard",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": true,
+      "confidence": 0.9
+    }
+  }
+}

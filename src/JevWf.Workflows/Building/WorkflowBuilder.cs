@@ -12,7 +12,12 @@ namespace JevWf.Workflows.Building;
 //   3. the pieces are connected by their types and the graph is validated.
 // If any Jev answer is below the confidence threshold, or the graph is invalid, the order gets
 // the default workflow instead.
-public sealed class WorkflowBuilder(PieceCatalog catalog, IJev jev, double confidenceThreshold = WorkflowBuilder.DefaultConfidenceThreshold)
+// trace, when given, receives every Jev answer and the reason for each fallback.
+public sealed class WorkflowBuilder(
+    PieceCatalog catalog,
+    IJev jev,
+    double confidenceThreshold = WorkflowBuilder.DefaultConfidenceThreshold,
+    Action<string>? trace = null)
 {
     public const double DefaultConfidenceThreshold = 0.7;
 
@@ -33,6 +38,7 @@ public sealed class WorkflowBuilder(PieceCatalog catalog, IJev jev, double confi
             var assembly = new WorkflowAssembly(catalog.Types, pieces, order, instances, decisions, WorkflowMode.Jev);
             if (assembly.Errors.Count == 0)
                 return assembly.ToWorkflow();
+            trace?.Invoke($"{order.OrderId}: default workflow, the Jev's workflow is invalid: {string.Join("; ", assembly.Errors)}");
         }
 
         var fallback = new WorkflowAssembly(catalog.Types, pieces, order, instances, Decisions.Default(order, pieces, instances), WorkflowMode.Default);
@@ -66,30 +72,37 @@ public sealed class WorkflowBuilder(PieceCatalog catalog, IJev jev, double confi
         var fields = RuleEvaluator.Fields(order, instance.Item);
         var state = JevState(order, instance.Item);
 
+        // Pieces sharing the same statement share one question (named after the first of them),
+        // so they can never get different answers.
         var active = new HashSet<string>(StringComparer.Ordinal);
-        var conditions = new Dictionary<string, JevQuestion>(StringComparer.Ordinal);
+        var piecesByStatement = new Dictionary<string, List<(string Name, bool WhenTrue)>>(StringComparer.Ordinal);
         foreach (var piece in scoped)
         {
             if (piece.When?.Rule is { } rule && !RuleEvaluator.Evaluate(rule, fields))
                 continue;
 
-            if (piece.When?.Jev is { } statement)
-                conditions[piece.Name] = new YesNoQuestion(
-                    $"Does this statement hold for the {Subject(instance)}?", statement, "The statement does not hold.");
+            if (piece.When?.Statement is { } statement)
+                (piecesByStatement.TryGetValue(statement, out var list) ? list : piecesByStatement[statement] = [])
+                    .Add((piece.Name, piece.When.Jev is not null));
             else
                 active.Add(piece.Name);
         }
 
-        if (conditions.Count > 0)
+        if (piecesByStatement.Count > 0)
         {
+            var conditions = piecesByStatement.ToDictionary(
+                s => s.Value[0].Name,
+                s => (JevQuestion)new YesNoQuestion($"Does this statement hold for the {Subject(instance)}?", s.Key, "The statement does not hold."),
+                StringComparer.Ordinal);
+
             var answers = await jev.AskAsync(state, conditions, ct).ConfigureAwait(false);
-            foreach (var name in conditions.Keys)
+            foreach (var sharing in piecesByStatement.Values)
             {
-                var answer = answers[name];
+                var answer = answers[sharing[0].Name];
+                Trace(order, instance, sharing[0].Name, answer.Yes is null ? "?" : answer.Yes.Value ? "yes" : "no", answer.Confidence);
                 if (answer.Confidence < confidenceThreshold || answer.Yes is null)
                     return null;
-                if (answer.Yes.Value)
-                    active.Add(name);
+                active.UnionWith(sharing.Where(p => p.WhenTrue == answer.Yes.Value).Select(p => p.Name));
             }
         }
 
@@ -116,6 +129,7 @@ public sealed class WorkflowBuilder(PieceCatalog catalog, IJev jev, double confi
             foreach (var (id, point) in choicePoints)
             {
                 var answer = answers[id];
+                Trace(order, instance, id, answer.Choice ?? "?", answer.Confidence);
                 if (answer.Confidence < confidenceThreshold || !point.Advancing.Any(p => p.Name == answer.Choice))
                     return null;
                 choices[point.Type] = answer.Choice!;
@@ -123,6 +137,14 @@ public sealed class WorkflowBuilder(PieceCatalog catalog, IJev jev, double confi
         }
 
         return (active, choices);
+    }
+
+    private void Trace(Order order, Instance instance, string question, string answer, double confidence)
+    {
+        if (trace is null)
+            return;
+        var below = confidence < confidenceThreshold ? $"  << below {confidenceThreshold:0.00}, default workflow" : "";
+        trace($"{order.OrderId}/{instance.Key}: {question} = {answer} ({confidence:0.00}){below}");
     }
 
     private static string Subject(Instance instance) =>

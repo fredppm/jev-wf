@@ -1,8 +1,8 @@
 {
-  "orderGroupId": "og-pharmacy-express",
+  "orderGroupId": "og-custom-pharmacy-express",
   "workflows": [
     {
-      "orderId": "og-pharmacy-express-01",
+      "orderId": "og-custom-pharmacy-express-01",
       "mode": "jev",
       "start": "confirm_seller",
       "nodes": [
@@ -70,10 +70,7 @@
           "piece": "issue_invoice",
           "scope": "item",
           "itemId": "anxiolytic1",
-          "publicStatus": "handling",
-          "config": {
-            "series": "express"
-          }
+          "publicStatus": "invoicing"
         },
         {
           "id": "anxiolytic1/ship_express",
@@ -96,21 +93,11 @@
           "publicStatus": "in_transit"
         },
         {
-          "id": "anxiolytic1/return_window",
-          "piece": "return_window",
+          "id": "anxiolytic1/close_without_return",
+          "piece": "close_without_return",
           "scope": "item",
           "itemId": "anxiolytic1",
-          "publicStatus": "delivered",
-          "config": {
-            "days": 7
-          }
-        },
-        {
-          "id": "anxiolytic1/process_return",
-          "piece": "process_return",
-          "scope": "item",
-          "itemId": "anxiolytic1",
-          "publicStatus": "returning"
+          "publicStatus": "delivered"
         },
         {
           "id": "anxiolytic1/repack",
@@ -222,7 +209,7 @@
         {
           "from": "anxiolytic1/pack",
           "port": "packed",
-          "type": "packed",
+          "type": "ready_to_ship",
           "to": "anxiolytic1/issue_invoice"
         },
         {
@@ -240,8 +227,7 @@
         {
           "from": "anxiolytic1/issue_invoice",
           "port": "exception",
-          "type": "resourcing_required",
-          "to": "anxiolytic1/reserve_stock"
+          "type": "manual_review_required"
         },
         {
           "from": "anxiolytic1/ship_express",
@@ -258,7 +244,7 @@
           "from": "anxiolytic1/wait_delivery",
           "port": "delivered",
           "type": "item_delivered",
-          "to": "anxiolytic1/return_window"
+          "to": "anxiolytic1/close_without_return"
         },
         {
           "from": "anxiolytic1/wait_delivery",
@@ -267,35 +253,19 @@
           "to": "anxiolytic1/reserve_stock"
         },
         {
-          "from": "anxiolytic1/return_window",
+          "from": "anxiolytic1/close_without_return",
           "port": "closed",
           "type": "item_completed"
         },
         {
-          "from": "anxiolytic1/return_window",
-          "port": "return_requested",
-          "type": "return_requested",
-          "to": "anxiolytic1/process_return"
-        },
-        {
-          "from": "anxiolytic1/return_window",
-          "port": "exception",
-          "type": "manual_review_required"
-        },
-        {
-          "from": "anxiolytic1/process_return",
-          "port": "refunded",
-          "type": "item_returned"
-        },
-        {
-          "from": "anxiolytic1/process_return",
+          "from": "anxiolytic1/close_without_return",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
           "from": "anxiolytic1/repack",
           "port": "packed",
-          "type": "packed",
+          "type": "ready_to_ship",
           "to": "anxiolytic1/issue_invoice"
         },
         {

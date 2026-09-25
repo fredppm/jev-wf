@@ -99,8 +99,100 @@ public sealed class WorkflowBuilderTests
         [
             Edge("release_items", "released", "item_released", "i1/reserve_stock"),
             Edge("release_items", "released", "item_released", "i2/reserve_stock"),
-            Edge("i1/start_handling", "ready", "ready_to_ship", "i1/ship_cold_chain"),
-            Edge("i2/start_handling", "ready", "ready_to_ship", "i2/ship_standard")
+            Edge("i1/issue_invoice", "issued", "ready_to_ship", "i1/ship_cold_chain"),
+            Edge("i2/issue_invoice", "issued", "ready_to_ship", "i2/ship_standard")
+        ]);
+    }
+
+    [Fact]
+    public async Task Gates_at_the_same_type_run_in_catalog_order()
+    {
+        var order = Order() with { Items = [new OrderItem("i1", "Zolpidem", "Controlled medicine.", 3, 40m)] };
+        var jev = Jev(
+            ("o1/i1", "request_prescription", new JevAnswer(Yes: true, Confidence: 0.95)),
+            ("o1/i1", "pharmacist_review", new JevAnswer(Yes: true, Confidence: 0.95)));
+
+        var workflow = await Build(order, jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("i1/request_prescription", "approved", "item_released", "i1/pharmacist_review"),
+            Edge("i1/pharmacist_review", "approved", "item_released", "i1/reserve_stock")
+        ]);
+    }
+
+    [Fact]
+    public async Task Pharmacist_review_needs_both_its_rule_and_its_statement()
+    {
+        var jev = Jev(
+            ("o1/i1", "request_prescription", new JevAnswer(Yes: true, Confidence: 0.95)),
+            ("o1/i1", "pharmacist_review", new JevAnswer(Yes: true, Confidence: 0.95)));
+
+        var workflow = await Build(Order(), jev);
+
+        workflow.Nodes.Select(n => n.Piece).Should().Contain("request_prescription").And.NotContain("pharmacist_review");
+    }
+
+    [Fact]
+    public async Task An_order_level_statement_is_judged_on_the_whole_order()
+    {
+        var jev = Jev(("o1", "review_unusual_order", new JevAnswer(Yes: true, Confidence: 0.9)));
+
+        var workflow = await Build(Order(), jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("confirm_seller", "confirmed", "order_confirmed", "review_unusual_order"),
+            Edge("review_unusual_order", "approved", "order_confirmed", "payment"),
+            Edge("review_unusual_order", "rejected", "order_cancelled", null)
+        ]);
+    }
+
+    [Fact]
+    public async Task Special_transport_is_booked_after_the_invoice_and_before_shipping()
+    {
+        var jev = Jev(("o1/i1", "require_special_transport", new JevAnswer(Yes: true, Confidence: 0.95)));
+
+        var workflow = await Build(Order(), jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("i1/start_handling", "ready", "ready_to_ship", "i1/issue_invoice"),
+            Edge("i1/issue_invoice", "issued", "ready_to_ship", "i1/require_special_transport"),
+            Edge("i1/require_special_transport", "declared", "ready_to_ship", "i1/ship_standard")
+        ]);
+    }
+
+    [Fact]
+    public async Task Made_to_order_items_are_produced_instead_of_reserved()
+    {
+        var jev = Jev(
+            ("o1/i1", "next_after_item_released", new JevAnswer(Choice: "produce_to_order", Confidence: 0.9)),
+            ("o1/i1", "return_window", new JevAnswer(Yes: false, Confidence: 0.9)));
+
+        var workflow = await Build(Order(), jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("release_items", "released", "item_released", "i1/produce_to_order"),
+            Edge("i1/produce_to_order", "produced", "stock_reserved", "i1/start_handling"),
+            Edge("i1/wait_delivery", "delivered", "item_delivered", "i1/close_without_return")
+        ]);
+        workflow.Nodes.Select(n => n.Piece).Should().NotContain("return_window");
+    }
+
+    [Fact]
+    public async Task A_seller_can_add_a_piece_without_replacing_any()
+    {
+        var order = Order() with { SellerId = "seller-gift-shop" };
+        var jev = Jev(("o1/i1", "gift_wrap", new JevAnswer(Yes: true, Confidence: 0.9)));
+
+        var workflow = await Build(order, jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("i1/reserve_stock", "reserved", "stock_reserved", "i1/gift_wrap"),
+            Edge("i1/gift_wrap", "wrapped", "stock_reserved", "i1/start_handling")
         ]);
     }
 
@@ -141,7 +233,7 @@ public sealed class WorkflowBuilderTests
             Edge("i1/reserve_stock", "reserved", "stock_reserved", "i1/pick_from_shelf"),
             Edge("i1/pack", "exception", "pack_failed", "i1/repack"),
             Edge("i1/pick_from_shelf", "exception", "resourcing_required", "i1/reserve_stock"),
-            Edge("i1/issue_invoice", "issued", "ready_to_ship", "i1/ship_standard")
+            Edge("i1/pack", "packed", "ready_to_ship", "i1/issue_invoice")
         ]);
         workflow.Nodes.Single(n => n.Piece == "pack").PublicStatus.Should().Be("handling");
     }

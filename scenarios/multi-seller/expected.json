@@ -68,8 +68,15 @@
           "publicStatus": "handling"
         },
         {
-          "id": "fridge1/ship_standard",
-          "piece": "ship_standard",
+          "id": "fridge1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "fridge1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "fridge1/ship_heavy_freight",
+          "piece": "ship_heavy_freight",
           "scope": "item",
           "itemId": "fridge1",
           "publicStatus": "shipping",
@@ -77,7 +84,8 @@
             "groupBy": [
               "origin",
               "shippingMethod"
-            ]
+            ],
+            "crew": 2
           }
         },
         {
@@ -212,7 +220,7 @@
           "from": "fridge1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "fridge1/ship_standard"
+          "to": "fridge1/issue_invoice"
         },
         {
           "from": "fridge1/start_handling",
@@ -221,13 +229,24 @@
           "to": "fridge1/reserve_stock"
         },
         {
-          "from": "fridge1/ship_standard",
+          "from": "fridge1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "fridge1/ship_heavy_freight"
+        },
+        {
+          "from": "fridge1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fridge1/ship_heavy_freight",
           "port": "shipped",
           "type": "in_transit",
           "to": "fridge1/wait_delivery"
         },
         {
-          "from": "fridge1/ship_standard",
+          "from": "fridge1/ship_heavy_freight",
           "port": "exception",
           "type": "manual_review_required"
         },
@@ -335,6 +354,13 @@
           "publicStatus": "handling"
         },
         {
+          "id": "icecream1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "icecream1",
+          "publicStatus": "invoicing"
+        },
+        {
           "id": "icecream1/ship_cold_chain",
           "piece": "ship_cold_chain",
           "scope": "item",
@@ -355,21 +381,11 @@
           "publicStatus": "in_transit"
         },
         {
-          "id": "icecream1/return_window",
-          "piece": "return_window",
+          "id": "icecream1/close_without_return",
+          "piece": "close_without_return",
           "scope": "item",
           "itemId": "icecream1",
-          "publicStatus": "delivered",
-          "config": {
-            "days": 7
-          }
-        },
-        {
-          "id": "icecream1/process_return",
-          "piece": "process_return",
-          "scope": "item",
-          "itemId": "icecream1",
-          "publicStatus": "returning"
+          "publicStatus": "delivered"
         },
         {
           "id": "icecream1/wait_restock",
@@ -447,13 +463,24 @@
           "from": "icecream1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "icecream1/ship_cold_chain"
+          "to": "icecream1/issue_invoice"
         },
         {
           "from": "icecream1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "icecream1/reserve_stock"
+        },
+        {
+          "from": "icecream1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "icecream1/ship_cold_chain"
+        },
+        {
+          "from": "icecream1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "icecream1/ship_cold_chain",
@@ -470,7 +497,7 @@
           "from": "icecream1/wait_delivery",
           "port": "delivered",
           "type": "item_delivered",
-          "to": "icecream1/return_window"
+          "to": "icecream1/close_without_return"
         },
         {
           "from": "icecream1/wait_delivery",
@@ -479,28 +506,12 @@
           "to": "icecream1/reserve_stock"
         },
         {
-          "from": "icecream1/return_window",
+          "from": "icecream1/close_without_return",
           "port": "closed",
           "type": "item_completed"
         },
         {
-          "from": "icecream1/return_window",
-          "port": "return_requested",
-          "type": "return_requested",
-          "to": "icecream1/process_return"
-        },
-        {
-          "from": "icecream1/return_window",
-          "port": "exception",
-          "type": "manual_review_required"
-        },
-        {
-          "from": "icecream1/process_return",
-          "port": "refunded",
-          "type": "item_returned"
-        },
-        {
-          "from": "icecream1/process_return",
+          "from": "icecream1/close_without_return",
           "port": "exception",
           "type": "manual_review_required"
         },
@@ -568,6 +579,13 @@
           "scope": "item",
           "itemId": "cable1",
           "publicStatus": "handling"
+        },
+        {
+          "id": "cable1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "cable1",
+          "publicStatus": "invoicing"
         },
         {
           "id": "cable1/ship_express",
@@ -682,13 +700,24 @@
           "from": "cable1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "cable1/ship_express"
+          "to": "cable1/issue_invoice"
         },
         {
           "from": "cable1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "cable1/reserve_stock"
+        },
+        {
+          "from": "cable1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "cable1/ship_express"
+        },
+        {
+          "from": "cable1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "cable1/ship_express",

@@ -1,0 +1,34 @@
+{
+  "og-near-miss-alcohol-free-beer-01": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-near-miss-alcohol-free-beer-01/beer0": {
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_standard",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": true,
+      "confidence": 0.9
+    }
+  }
+}

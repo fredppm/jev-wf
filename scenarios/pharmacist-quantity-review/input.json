@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-pharmacist-quantity-review",
+  "orders": [
+    {
+      "orderId": "og-pharmacist-quantity-review-01",
+      "sellerId": "seller-pharmacy",
+      "items": [
+        {
+          "itemId": "zolpidem1",
+          "productName": "Zolpidem 10mg",
+          "description": "Controlled sleep medication, can only be sold on presentation of a medical prescription.",
+          "quantity": 3,
+          "unitPrice": 40.0
+        }
+      ]
+    }
+  ]
+}

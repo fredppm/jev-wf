@@ -22,6 +22,17 @@
       "config": { "timeoutMinutes": 60 }
     },
     {
+      "name": "review_unusual_order",
+      "description": "A person reviews the order before it goes on.",
+      "kind": "optional",
+      "scope": "order",
+      "when": { "jev": "A person should review this order before it goes on, because it does not look like a normal consumer purchase: resale-like quantities of the same product (dozens of units) or an odd mix of items that suggests fraud." },
+      "in": "order_confirmed",
+      "out": { "approved": "order_confirmed", "rejected": "order_cancelled" },
+      "publicStatus": "order_review",
+      "config": { "queue": "unusual-orders" }
+    },
+    {
       "name": "fraud_check",
       "description": "Sends the order to the anti-fraud provider, which returns a risk score.",
       "kind": "optional",
@@ -67,15 +78,39 @@
       "description": "Asks the buyer for the medical prescription and validates it before the item is handled.",
       "kind": "required",
       "scope": "item",
-      "when": { "jev": "The item is a medicine that can only be sold with a medical prescription." },
+      "when": { "jev": "To sell this item, a medical prescription must be collected from the buyer and validated." },
       "in": "item_released",
       "out": { "approved": "item_released", "denied": "item_cancelled" },
       "publicStatus": "waiting_prescription",
       "config": { "timeoutHours": 48 }
     },
     {
+      "name": "pharmacist_review",
+      "description": "A pharmacist approves a controlled medicine sold in more than two units.",
+      "kind": "required",
+      "scope": "item",
+      "when": {
+        "rule": "item.quantity > 2",
+        "jev": "Selling this quantity of this item needs a pharmacist's approval, because it is a controlled or prescription-only medicine."
+      },
+      "in": "item_released",
+      "out": { "approved": "item_released", "rejected": "item_cancelled" },
+      "publicStatus": "waiting_prescription"
+    },
+    {
+      "name": "verify_age",
+      "description": "Checks that the buyer is an adult before the item is handled.",
+      "kind": "required",
+      "scope": "item",
+      "when": { "jev": "Before selling this item, the seller must confirm the buyer is an adult (alcoholic drinks, tobacco or vapes, adult content)." },
+      "in": "item_released",
+      "out": { "verified": "item_released", "underage": "item_cancelled" },
+      "publicStatus": "waiting_age_verification",
+      "config": { "minimumAge": 18 }
+    },
+    {
       "name": "reserve_stock",
-      "description": "Physical product: reserves stock at the best origin (store or distribution center) of the seller.",
+      "description": "Ready-made physical product: reserves stock at the best origin (store or distribution center) of the seller.",
       "kind": "fixed",
       "scope": "item",
       "in": ["item_released", "restock_received", "resourcing_required"],
@@ -85,8 +120,18 @@
       "config": { "strategy": "lowest_effective_lead_time" }
     },
     {
+      "name": "produce_to_order",
+      "description": "Made-to-order or personalized physical product (engraving, tailoring, furniture built on demand): produced after purchase, there is no stock to reserve.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "item_released",
+      "out": { "produced": "stock_reserved" },
+      "publicStatus": "in_production",
+      "config": { "maxLeadTimeDays": 15 }
+    },
+    {
       "name": "deliver_digital",
-      "description": "Digital product (download, e-mail, license key): delivered electronically, no stock and no shipping.",
+      "description": "Purely digital product (download, e-mail, license key): delivered electronically, nothing physical is shipped.",
       "kind": "optional",
       "scope": "item",
       "in": "item_released",
@@ -114,8 +159,28 @@
       "publicStatus": "handling"
     },
     {
+      "name": "issue_invoice",
+      "description": "Issues the invoice (NF-e) that must travel with the item.",
+      "kind": "fixed",
+      "scope": "item",
+      "in": "ready_to_ship",
+      "out": { "issued": "ready_to_ship" },
+      "publicStatus": "invoicing"
+    },
+    {
+      "name": "require_special_transport",
+      "description": "Books a certified carrier for an item that ordinary carriers refuse to take.",
+      "kind": "required",
+      "scope": "item",
+      "when": { "jev": "Ordinary parcel carriers refuse to take this item and it must go with a certified special carrier (for example power banks or loose lithium batteries, fuels, gas cylinders, corrosive chemicals)." },
+      "in": "ready_to_ship",
+      "out": { "declared": "ready_to_ship", "not_allowed": "item_cancelled" },
+      "publicStatus": "invoicing",
+      "config": { "carrierCertification": "IATA-DGR" }
+    },
+    {
       "name": "ship_standard",
-      "description": "Ordinary shipping: no refrigeration and no delivery urgency.",
+      "description": "Ordinary parcel shipping: small or medium item, no refrigeration and no delivery urgency.",
       "kind": "optional",
       "scope": "item",
       "in": "ready_to_ship",
@@ -126,7 +191,7 @@
     },
     {
       "name": "ship_express",
-      "description": "Express shipping: the item is urgent or needs fast delivery, without refrigeration.",
+      "description": "Express parcel shipping: the item is urgent or needs fast delivery, without refrigeration.",
       "kind": "optional",
       "scope": "item",
       "in": "ready_to_ship",
@@ -145,6 +210,16 @@
       "config": { "groupBy": ["origin", "shippingMethod"] }
     },
     {
+      "name": "ship_heavy_freight",
+      "description": "Scheduled freight for large or heavy items that do not fit a parcel carrier: home appliances, furniture, mattresses.",
+      "kind": "optional",
+      "scope": "item",
+      "in": "ready_to_ship",
+      "out": { "shipped": "in_transit" },
+      "publicStatus": "shipping",
+      "config": { "groupBy": ["origin", "shippingMethod"], "crew": 2 }
+    },
+    {
       "name": "wait_delivery",
       "description": "Waits for the carrier to deliver the item.",
       "kind": "fixed",
@@ -156,13 +231,25 @@
     },
     {
       "name": "return_window",
-      "description": "Keeps the item open for returns for a few days after delivery.",
-      "kind": "fixed",
+      "description": "Keeps the item open for return after delivery: the buyer may send it back, sealed or unused, within the return period (ordinary goods, including a physical gift card that was not used).",
+      "kind": "optional",
       "scope": "item",
+      "when": { "jev": "Once delivered, this item can still be accepted back from the buyer if it comes back sealed or unused (ordinary goods, a physical gift card that was not used). It cannot for medicines, perishable or frozen food, personal hygiene products, and custom-made or engraved items." },
       "in": "item_delivered",
       "out": { "closed": "item_completed", "return_requested": "return_requested" },
       "publicStatus": "delivered",
+      "default": true,
       "config": { "days": 7 }
+    },
+    {
+      "name": "close_without_return",
+      "description": "Closes the item right after delivery with no return, because once delivered it cannot be taken back: medicines, perishable or frozen food, personal hygiene products, custom-made or engraved items.",
+      "kind": "optional",
+      "scope": "item",
+      "when": { "jevNot": "Once delivered, this item can still be accepted back from the buyer if it comes back sealed or unused (ordinary goods, a physical gift card that was not used). It cannot for medicines, perishable or frozen food, personal hygiene products, and custom-made or engraved items." },
+      "in": "item_delivered",
+      "out": { "closed": "item_completed" },
+      "publicStatus": "delivered"
     },
     {
       "name": "process_return",

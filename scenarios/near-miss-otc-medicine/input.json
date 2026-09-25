@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-near-miss-otc-medicine",
+  "orders": [
+    {
+      "orderId": "og-near-miss-otc-medicine-01",
+      "sellerId": "seller-pharmacy",
+      "items": [
+        {
+          "itemId": "dipyrone1",
+          "productName": "Dipyrone 500mg",
+          "description": "Over-the-counter painkiller and fever reducer, sold without prescription, small box.",
+          "quantity": 1,
+          "unitPrice": 12.0
+        }
+      ]
+    }
+  ]
+}

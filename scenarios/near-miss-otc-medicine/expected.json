@@ -1,0 +1,232 @@
+{
+  "orderGroupId": "og-near-miss-otc-medicine",
+  "workflows": [
+    {
+      "orderId": "og-near-miss-otc-medicine-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "dipyrone1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "dipyrone1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "dipyrone1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "dipyrone1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "dipyrone1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "dipyrone1/close_without_return",
+          "piece": "close_without_return",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "delivered"
+        },
+        {
+          "id": "dipyrone1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "dipyrone1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "dipyrone1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "dipyrone1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "dipyrone1/start_handling"
+        },
+        {
+          "from": "dipyrone1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "dipyrone1/wait_restock"
+        },
+        {
+          "from": "dipyrone1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "dipyrone1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "dipyrone1/issue_invoice"
+        },
+        {
+          "from": "dipyrone1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "dipyrone1/reserve_stock"
+        },
+        {
+          "from": "dipyrone1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "dipyrone1/ship_standard"
+        },
+        {
+          "from": "dipyrone1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "dipyrone1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "dipyrone1/wait_delivery"
+        },
+        {
+          "from": "dipyrone1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "dipyrone1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "dipyrone1/close_without_return"
+        },
+        {
+          "from": "dipyrone1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "dipyrone1/reserve_stock"
+        },
+        {
+          "from": "dipyrone1/close_without_return",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "dipyrone1/close_without_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "dipyrone1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "dipyrone1/reserve_stock"
+        },
+        {
+          "from": "dipyrone1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "dipyrone1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

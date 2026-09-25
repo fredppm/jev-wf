@@ -1,0 +1,15 @@
+{
+  "pieces": [
+    {
+      "name": "gift_wrap",
+      "description": "The item is gift-wrapped with a card before handling.",
+      "kind": "optional",
+      "scope": "item",
+      "when": { "jev": "This item should be gift-wrapped before it ships, because it is sold as a present (gift box, gift set)." },
+      "in": "stock_reserved",
+      "out": { "wrapped": "stock_reserved" },
+      "publicStatus": "handling",
+      "config": { "paper": "kraft", "card": true }
+    }
+  ]
+}

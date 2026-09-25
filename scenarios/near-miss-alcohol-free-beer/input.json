@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-near-miss-alcohol-free-beer",
+  "orders": [
+    {
+      "orderId": "og-near-miss-alcohol-free-beer-01",
+      "sellerId": "seller-beverages",
+      "items": [
+        {
+          "itemId": "beer0",
+          "productName": "Alcohol-free beer 6-pack",
+          "description": "Non-alcoholic beer, 0.0% ABV, six cans, ordinary parcel, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 30.0
+        }
+      ]
+    }
+  ]
+}

@@ -5,7 +5,13 @@
       "orderId": "og-digital-ebook-01",
       "sellerId": "seller-digital-books",
       "items": [
-        { "itemId": "ebook1", "productName": "E-book: Introduction to AI Workflows", "description": "Digital PDF book, delivered by download link sent by e-mail after purchase, no physical shipping.", "quantity": 1, "unitPrice": 29.90 }
+        {
+          "itemId": "ebook1",
+          "productName": "E-book: Introduction to AI Workflows",
+          "description": "Digital PDF book, delivered by download link sent by e-mail after purchase, no physical shipping.",
+          "quantity": 1,
+          "unitPrice": 29.9
+        }
       ]
     }
   ]

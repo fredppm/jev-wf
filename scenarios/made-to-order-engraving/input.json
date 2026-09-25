@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-made-to-order-engraving",
+  "orders": [
+    {
+      "orderId": "og-made-to-order-engraving-01",
+      "sellerId": "seller-custom-factory",
+      "items": [
+        {
+          "itemId": "nameplate1",
+          "productName": "Engraved wooden nameplate",
+          "description": "Custom-engraved wooden nameplate, made to order with the buyer's name after purchase, small parcel, no delivery urgency.",
+          "quantity": 1,
+          "unitPrice": 90.0
+        }
+      ]
+    }
+  ]
+}

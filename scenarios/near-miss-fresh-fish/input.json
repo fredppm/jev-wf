@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-near-miss-fresh-fish",
+  "orders": [
+    {
+      "orderId": "og-near-miss-fresh-fish-01",
+      "sellerId": "seller-seafood",
+      "items": [
+        {
+          "itemId": "salmon1",
+          "productName": "Fresh salmon fillet 1kg",
+          "description": "Fresh fish, perishable, must stay chilled from the store to the door.",
+          "quantity": 1,
+          "unitPrice": 80.0
+        }
+      ]
+    }
+  ]
+}

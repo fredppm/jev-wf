@@ -1,0 +1,462 @@
+{
+  "orderGroupId": "og-custom-gift-shop",
+  "workflows": [
+    {
+      "orderId": "og-custom-gift-shop-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "candle1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "candle1/gift_wrap",
+          "piece": "gift_wrap",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "handling",
+          "config": {
+            "paper": "kraft",
+            "card": true
+          }
+        },
+        {
+          "id": "candle1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "candle1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "candle1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "candle1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "candle1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "candle1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "candle1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "candle1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        },
+        {
+          "id": "notebook1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "notebook1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "notebook1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "notebook1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "notebook1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "notebook1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "notebook1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "notebook1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "notebook1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "candle1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "notebook1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "candle1/gift_wrap"
+        },
+        {
+          "from": "candle1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "candle1/wait_restock"
+        },
+        {
+          "from": "candle1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/gift_wrap",
+          "port": "wrapped",
+          "type": "stock_reserved",
+          "to": "candle1/start_handling"
+        },
+        {
+          "from": "candle1/gift_wrap",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "candle1/issue_invoice"
+        },
+        {
+          "from": "candle1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "candle1/reserve_stock"
+        },
+        {
+          "from": "candle1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "candle1/ship_standard"
+        },
+        {
+          "from": "candle1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "candle1/wait_delivery"
+        },
+        {
+          "from": "candle1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "candle1/return_window"
+        },
+        {
+          "from": "candle1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "candle1/reserve_stock"
+        },
+        {
+          "from": "candle1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "candle1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "candle1/process_return"
+        },
+        {
+          "from": "candle1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "candle1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "candle1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "candle1/reserve_stock"
+        },
+        {
+          "from": "candle1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "candle1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "notebook1/start_handling"
+        },
+        {
+          "from": "notebook1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "notebook1/wait_restock"
+        },
+        {
+          "from": "notebook1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "notebook1/issue_invoice"
+        },
+        {
+          "from": "notebook1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "notebook1/reserve_stock"
+        },
+        {
+          "from": "notebook1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "notebook1/ship_standard"
+        },
+        {
+          "from": "notebook1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "notebook1/wait_delivery"
+        },
+        {
+          "from": "notebook1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "notebook1/return_window"
+        },
+        {
+          "from": "notebook1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "notebook1/reserve_stock"
+        },
+        {
+          "from": "notebook1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "notebook1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "notebook1/process_return"
+        },
+        {
+          "from": "notebook1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "notebook1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "notebook1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "notebook1/reserve_stock"
+        },
+        {
+          "from": "notebook1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "notebook1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

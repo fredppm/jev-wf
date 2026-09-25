@@ -62,7 +62,7 @@ pieces connect only when one produces a type the other accepts.
 |---|---|
 | `kind` | `fixed`: always there. `required`: must be there whenever its condition holds. `optional`: enters when its condition holds, or competes with other pieces for the same type |
 | `scope` | `order` or `item` |
-| `when` | `rule` (code, e.g. `order.total > 100 && item.quantity >= 2`) and/or `jev` (a statement the Jev judges). Fields: `order.total`, `order.sellerId`, `order.itemCount`, `item.unitPrice`, `item.quantity`, `item.total` |
+| `when` | `rule` (code, e.g. `order.total > 100 && item.quantity >= 2`) and/or `jev` (a statement the Jev judges must hold) or `jevNot` (must not hold; two pieces with the same statement, one `jev` and one `jevNot`, are alternatives decided by one question). Fields: `order.total`, `order.sellerId`, `order.itemCount`, `item.unitPrice`, `item.quantity`, `item.total` |
 | `in` / `out` | The connection types. Types are free strings; custom pieces can create new ones |
 | `onException` | Type produced when the piece fails. Default: `manual_review_required` (a person decides) |
 | `publicStatus` | What everyone outside sees while the flow is in this piece |
@@ -96,13 +96,28 @@ accepts the same types, leaves through the same types and fails through the same
 types are free, exceptions can be handled internally, unhandled ones leave through the replaced
 piece's exception, and the public status stays the replaced piece's. Example:
 `seller-pharmacy-express` replaces `start_handling` with `pick_from_shelf` → `pack` (`repack` on
-failure) → `issue_invoice`. Broken catalogs fail at load time.
+failure); the VTEX `issue_invoice` still runs after it. `seller-gift-shop` adds `gift_wrap` at
+`stock_reserved`. Broken catalogs fail at load time.
+
+What the VTEX catalog decides with the Jev today:
+
+| Point | Pieces |
+|---|---|
+| Order confirmed (order) | `review_unusual_order` (statement) |
+| Item released (gates) | `request_prescription`, `pharmacist_review` (rule + statement), `verify_age` |
+| Item released (choice) | `reserve_stock`, `produce_to_order`, `deliver_digital` |
+| Ready to ship (gates) | `issue_invoice` (fixed), `require_special_transport` (statement) |
+| Ready to ship (choice) | `ship_standard`, `ship_express`, `ship_cold_chain`, `ship_heavy_freight` |
+| Item delivered (statement) | `return_window` if it can be taken back, `close_without_return` if not |
 
 ## The Jev and the default workflow
 
 Per item (and per order, for order-level statements) the builder makes at most two Jev calls: one
 with a yes/no question per `jev` condition, one with a choice question per point where pieces
-compete. Choice answers carry their own confidence; a yes/no answer only carries the probability
+compete. Statements and descriptions are written about what the piece does ("a prescription must be
+collected", "ordinary carriers refuse to take this item"), not as a product category, so the Jev
+judges whether that action is needed for that item. Pieces that share a statement share one
+question. Choice answers carry their own confidence; a yes/no answer only carries the probability
 that the statement holds, so its confidence is how far that is from a coin flip (0.95 and 0.05 are
 both 0.95). If any answer is below the confidence threshold (0.7), or the resulting workflow is
 invalid (a type nothing accepts, a required piece left out, a node that can never finish), the
@@ -117,14 +132,33 @@ the model).
 
 | Scenario | What it shows |
 |---|---|
-| `simple-shirt` | Baseline: one item, standard shipping |
-| `prescription` | Prescription required for one item of the order, not for the other |
+| `simple-shirt` | Baseline: one item, standard shipping, returnable |
+| `prescription` | Prescription for the medicine (not returnable), none for the bottle sold by the same pharmacy |
 | `digital-ebook` | Digital delivery instead of stock and shipping |
 | `high-value-fraud-check` | Order above R$ 100: fraud check and score before payment |
 | `free-sample` | Order costing R$ 0: no payment |
-| `multi-seller` | Three sellers, three isolated workflows, standard / cold chain / express shipping |
+| `multi-seller` | Three isolated workflows: heavy freight, cold chain (not returnable), express |
 | `two-sellers-isolated` | Two sellers never share a workflow |
-| `custom-pharmacy-express` | Seller chain replacing handling, plus prescription and express shipping |
+| `custom-pharmacy-express` | Seller chain replacing handling, then the VTEX invoice, prescription, express |
+| `age-restricted-whisky` | Age verification before stock |
+| `special-transport-solvent` | Flammable solvent needs a certified carrier, booked after the invoice |
+| `made-to-order-engraving` | Produced instead of reserved; engraved, so not returnable |
+| `mixed-single-seller` | One order, four item branches: digital, frozen, OTC medicine, ordinary |
+| `bulk-resale-order` | Order-level Jev statement: 40 phones get a manual review, plus fraud check |
+| `pharmacist-quantity-review` | Rule + Jev on the same piece: controlled medicine above 2 units |
+| `custom-gift-shop` | Seller adds a piece (gift wrap) only for the item sold as a gift |
+| `near-miss-otc-medicine` | Medicine without prescription: no prescription step, still not returnable |
+| `near-miss-fresh-fish` | Chilled, not frozen, still cold chain |
+| `near-miss-printed-gift-card` | Sounds digital, is a physical card: stock and shipping |
+| `near-miss-alcohol-free-beer` | Sounds like alcohol, 0.0%: no age verification |
+
+The `near-miss-*` scenarios are the ones where a careless classification goes wrong; they only
+prove something in the real-Jev test.
+
+Four scenarios expect the **default workflow**: the real Jev answers right, but consistently below
+the 0.7 threshold (measured over repeated runs): whisky and paint thinner returns (~0.6), printed
+gift card returns (~0.6) and the review of an order with 3 boxes of a controlled medicine (~0.67).
+Their `jev-answers.json` records those confidences.
 
 ## Running
 

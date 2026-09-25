@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-bulk-resale-order",
+  "orders": [
+    {
+      "orderId": "og-bulk-resale-order-01",
+      "sellerId": "seller-phones",
+      "items": [
+        {
+          "itemId": "phone1",
+          "productName": "Smartphone 128GB",
+          "description": "Ordinary smartphone, small physical product, no delivery urgency, no legal restriction.",
+          "quantity": 40,
+          "unitPrice": 1500.0
+        }
+      ]
+    }
+  ]
+}

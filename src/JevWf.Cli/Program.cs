@@ -5,16 +5,18 @@ using JevWf.Workflows.Catalog;
 using JevWf.Workflows.Jev;
 using JevWf.Workflows.Orders;
 
-// jevwf <orderGroup.json> [--catalog <dir>] [--threshold <0-1>] [--answers <jev-answers.json>] [--out <file>]
+// jevwf <orderGroup.json> [--catalog <dir>] [--threshold <0-1>] [--answers <jev-answers.json>] [--out <file>] [--verbose]
 if (args.Length == 0 || args[0].StartsWith("--", StringComparison.Ordinal))
 {
-    Console.Error.WriteLine("Usage: jevwf <orderGroup.json> [--catalog <dir>] [--threshold <0-1>] [--answers <jev-answers.json>] [--out <file>]");
+    Console.Error.WriteLine("Usage: jevwf <orderGroup.json> [--catalog <dir>] [--threshold <0-1>] [--answers <jev-answers.json>] [--out <file>] [--verbose]");
     return 2;
 }
 
+var verbose = args.Contains("--verbose");
 var options = new Dictionary<string, string>(StringComparer.Ordinal);
-for (var i = 1; i + 1 < args.Length; i += 2)
-    options[args[i]] = args[i + 1];
+var optionArgs = args.Skip(1).Where(a => a != "--verbose").ToArray();
+for (var i = 0; i + 1 < optionArgs.Length; i += 2)
+    options[optionArgs[i]] = optionArgs[i + 1];
 
 var catalog = PieceCatalog.Load(options.GetValueOrDefault("--catalog", "catalog"));
 var threshold = options.TryGetValue("--threshold", out var t)
@@ -28,17 +30,17 @@ if (options.TryGetValue("--answers", out var answersPath))
 }
 else
 {
-    var apiKey = Environment.GetEnvironmentVariable("OPENROUTER_API_KEY");
-    if (string.IsNullOrEmpty(apiKey))
+    var apiKey = JevApiKey.Find(Directory.GetCurrentDirectory());
+    if (apiKey is null)
     {
-        Console.Error.WriteLine("Set OPENROUTER_API_KEY, or pass --answers to use scripted Jev answers.");
+        Console.Error.WriteLine("Set OPENROUTER_API_KEY (environment or .env), or pass --answers to use scripted Jev answers.");
         return 2;
     }
     jev = new OpenRouterJev(apiKey);
 }
 
 var orderGroup = JsonDefaults.Read<OrderGroup>(args[0]);
-var workflows = await new WorkflowBuilder(catalog, jev, threshold).BuildAsync(orderGroup);
+var workflows = await new WorkflowBuilder(catalog, jev, threshold, verbose ? Console.Error.WriteLine : null).BuildAsync(orderGroup);
 (jev as IDisposable)?.Dispose();
 
 var json = JsonDefaults.Write(workflows);

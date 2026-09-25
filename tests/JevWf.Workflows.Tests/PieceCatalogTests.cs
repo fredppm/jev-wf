@@ -14,6 +14,7 @@ public sealed class PieceCatalogTests
 
         pieces.Should().NotContain("start_handling");
         pieces.Should().ContainInOrder("reserve_stock", "pick_from_shelf", "pack", "repack", "issue_invoice", "ship_standard");
+        pieces.Should().ContainSingle(p => p == "issue_invoice", "the VTEX invoice still runs after the chain");
         Vtex.For("seller-pharmacy-express").Where(p => p.Replaces == "start_handling")
             .Should().OnlyContain(p => p.PublicStatus == "handling" && p.Source == "seller-pharmacy-express");
     }

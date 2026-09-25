@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-near-miss-printed-gift-card",
+  "orders": [
+    {
+      "orderId": "og-near-miss-printed-gift-card-01",
+      "sellerId": "seller-gift-cards",
+      "items": [
+        {
+          "itemId": "giftcard1",
+          "productName": "Printed gift card R$ 100",
+          "description": "Physical plastic gift card mailed in an envelope, the code is printed on the card, ordinary small parcel.",
+          "quantity": 1,
+          "unitPrice": 100.0
+        }
+      ]
+    }
+  ]
+}

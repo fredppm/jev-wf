@@ -3,9 +3,15 @@
   "orders": [
     {
       "orderId": "og-free-sample-01",
-      "sellerId": "seller-cosmetics",
+      "sellerId": "seller-promo",
       "items": [
-        { "itemId": "sample1", "productName": "Moisturizer sample 5ml", "description": "Free cosmetic sample, ordinary physical product, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 0 }
+        {
+          "itemId": "keychain1",
+          "productName": "Promotional keychain",
+          "description": "Free metal keychain given as a promotional gift, ordinary physical product, no delivery urgency.",
+          "quantity": 1,
+          "unitPrice": 0
+        }
       ]
     }
   ]

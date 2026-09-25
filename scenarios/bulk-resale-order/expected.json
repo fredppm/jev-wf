@@ -1,0 +1,334 @@
+{
+  "orderGroupId": "og-bulk-resale-order",
+  "workflows": [
+    {
+      "orderId": "og-bulk-resale-order-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "review_unusual_order",
+          "piece": "review_unusual_order",
+          "scope": "order",
+          "publicStatus": "order_review",
+          "config": {
+            "queue": "unusual-orders"
+          }
+        },
+        {
+          "id": "fraud_check",
+          "piece": "fraud_check",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "provider": "vtex-antifraud"
+          }
+        },
+        {
+          "id": "evaluate_fraud_score",
+          "piece": "evaluate_fraud_score",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "approveBelow": 30,
+            "denyAbove": 80
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "phone1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "phone1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "phone1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "phone1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "phone1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "phone1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "phone1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "phone1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "phone1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "review_unusual_order"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "fraud_check"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fraud_check",
+          "port": "scored",
+          "type": "fraud_scored",
+          "to": "evaluate_fraud_score"
+        },
+        {
+          "from": "fraud_check",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "approve",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "review",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "deny",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "phone1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "phone1/start_handling"
+        },
+        {
+          "from": "phone1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "phone1/wait_restock"
+        },
+        {
+          "from": "phone1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "phone1/issue_invoice"
+        },
+        {
+          "from": "phone1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "phone1/reserve_stock"
+        },
+        {
+          "from": "phone1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "phone1/ship_standard"
+        },
+        {
+          "from": "phone1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "phone1/wait_delivery"
+        },
+        {
+          "from": "phone1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "phone1/return_window"
+        },
+        {
+          "from": "phone1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "phone1/reserve_stock"
+        },
+        {
+          "from": "phone1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "phone1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "phone1/process_return"
+        },
+        {
+          "from": "phone1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "phone1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "phone1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "phone1/reserve_stock"
+        },
+        {
+          "from": "phone1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "phone1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

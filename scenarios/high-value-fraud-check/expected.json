@@ -1,8 +1,8 @@
 {
-  "orderGroupId": "og-high-value",
+  "orderGroupId": "og-high-value-fraud-check",
   "workflows": [
     {
-      "orderId": "og-high-value-01",
+      "orderId": "og-high-value-fraud-check-01",
       "mode": "jev",
       "start": "confirm_seller",
       "nodes": [
@@ -66,6 +66,13 @@
           "scope": "item",
           "itemId": "goldwatch1",
           "publicStatus": "handling"
+        },
+        {
+          "id": "goldwatch1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "goldwatch1",
+          "publicStatus": "invoicing"
         },
         {
           "id": "goldwatch1/ship_standard",
@@ -212,13 +219,24 @@
           "from": "goldwatch1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "goldwatch1/ship_standard"
+          "to": "goldwatch1/issue_invoice"
         },
         {
           "from": "goldwatch1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "goldwatch1/reserve_stock"
+        },
+        {
+          "from": "goldwatch1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "goldwatch1/ship_standard"
+        },
+        {
+          "from": "goldwatch1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "goldwatch1/ship_standard",

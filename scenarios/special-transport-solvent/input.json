@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-special-transport-solvent",
+  "orders": [
+    {
+      "orderId": "og-special-transport-solvent-01",
+      "sellerId": "seller-hardware",
+      "items": [
+        {
+          "itemId": "thinner1",
+          "productName": "Paint thinner 5L",
+          "description": "Flammable solvent (paint thinner), 5-liter metal can, no delivery urgency.",
+          "quantity": 1,
+          "unitPrice": 150.0
+        }
+      ]
+    }
+  ]
+}

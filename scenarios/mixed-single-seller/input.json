@@ -1,0 +1,39 @@
+{
+  "orderGroupId": "og-mixed-single-seller",
+  "orders": [
+    {
+      "orderId": "og-mixed-single-seller-01",
+      "sellerId": "seller-marketplace",
+      "items": [
+        {
+          "itemId": "ebook2",
+          "productName": "E-book: Home Cooking",
+          "description": "Digital PDF cookbook, delivered by download link, no physical shipping.",
+          "quantity": 1,
+          "unitPrice": 30.0
+        },
+        {
+          "itemId": "pizza1",
+          "productName": "Frozen pizza",
+          "description": "Frozen pizza, perishable, must stay frozen until delivery, needs cold chain.",
+          "quantity": 1,
+          "unitPrice": 25.0
+        },
+        {
+          "itemId": "ibuprofen1",
+          "productName": "Ibuprofen 400mg",
+          "description": "Over-the-counter painkiller medicine, sold without prescription, small box.",
+          "quantity": 1,
+          "unitPrice": 15.0
+        },
+        {
+          "itemId": "case1",
+          "productName": "Phone case",
+          "description": "Ordinary silicone phone case, small physical product, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 40.0
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,435 @@
+{
+  "orderGroupId": "og-pharmacist-quantity-review",
+  "workflows": [
+    {
+      "orderId": "og-pharmacist-quantity-review-01",
+      "mode": "default",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "review_unusual_order",
+          "piece": "review_unusual_order",
+          "scope": "order",
+          "publicStatus": "order_review",
+          "config": {
+            "queue": "unusual-orders"
+          }
+        },
+        {
+          "id": "fraud_check",
+          "piece": "fraud_check",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "provider": "vtex-antifraud"
+          }
+        },
+        {
+          "id": "evaluate_fraud_score",
+          "piece": "evaluate_fraud_score",
+          "scope": "order",
+          "publicStatus": "fraud_analysis",
+          "config": {
+            "approveBelow": 30,
+            "denyAbove": 80
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "zolpidem1/request_prescription",
+          "piece": "request_prescription",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "waiting_prescription",
+          "config": {
+            "timeoutHours": 48
+          }
+        },
+        {
+          "id": "zolpidem1/pharmacist_review",
+          "piece": "pharmacist_review",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "waiting_prescription"
+        },
+        {
+          "id": "zolpidem1/verify_age",
+          "piece": "verify_age",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "waiting_age_verification",
+          "config": {
+            "minimumAge": 18
+          }
+        },
+        {
+          "id": "zolpidem1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "zolpidem1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "zolpidem1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "zolpidem1/require_special_transport",
+          "piece": "require_special_transport",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "invoicing",
+          "config": {
+            "carrierCertification": "IATA-DGR"
+          }
+        },
+        {
+          "id": "zolpidem1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "zolpidem1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "zolpidem1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "zolpidem1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "zolpidem1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "zolpidem1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "review_unusual_order"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "fraud_check"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "fraud_check",
+          "port": "scored",
+          "type": "fraud_scored",
+          "to": "evaluate_fraud_score"
+        },
+        {
+          "from": "fraud_check",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "approve",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "review",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "deny",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "evaluate_fraud_score",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "zolpidem1/request_prescription"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/request_prescription",
+          "port": "approved",
+          "type": "item_released",
+          "to": "zolpidem1/pharmacist_review"
+        },
+        {
+          "from": "zolpidem1/request_prescription",
+          "port": "denied",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "zolpidem1/request_prescription",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/pharmacist_review",
+          "port": "approved",
+          "type": "item_released",
+          "to": "zolpidem1/verify_age"
+        },
+        {
+          "from": "zolpidem1/pharmacist_review",
+          "port": "rejected",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "zolpidem1/pharmacist_review",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/verify_age",
+          "port": "verified",
+          "type": "item_released",
+          "to": "zolpidem1/reserve_stock"
+        },
+        {
+          "from": "zolpidem1/verify_age",
+          "port": "underage",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "zolpidem1/verify_age",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "zolpidem1/start_handling"
+        },
+        {
+          "from": "zolpidem1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "zolpidem1/wait_restock"
+        },
+        {
+          "from": "zolpidem1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "zolpidem1/issue_invoice"
+        },
+        {
+          "from": "zolpidem1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "zolpidem1/reserve_stock"
+        },
+        {
+          "from": "zolpidem1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "zolpidem1/require_special_transport"
+        },
+        {
+          "from": "zolpidem1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/require_special_transport",
+          "port": "declared",
+          "type": "ready_to_ship",
+          "to": "zolpidem1/ship_standard"
+        },
+        {
+          "from": "zolpidem1/require_special_transport",
+          "port": "not_allowed",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "zolpidem1/require_special_transport",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "zolpidem1/wait_delivery"
+        },
+        {
+          "from": "zolpidem1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "zolpidem1/return_window"
+        },
+        {
+          "from": "zolpidem1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "zolpidem1/reserve_stock"
+        },
+        {
+          "from": "zolpidem1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "zolpidem1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "zolpidem1/process_return"
+        },
+        {
+          "from": "zolpidem1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "zolpidem1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "zolpidem1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "zolpidem1/reserve_stock"
+        },
+        {
+          "from": "zolpidem1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "zolpidem1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

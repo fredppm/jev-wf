@@ -22,27 +22,34 @@
           "publicStatus": "ready_for_handling"
         },
         {
-          "id": "sample1/reserve_stock",
+          "id": "keychain1/reserve_stock",
           "piece": "reserve_stock",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "sourcing",
           "config": {
             "strategy": "lowest_effective_lead_time"
           }
         },
         {
-          "id": "sample1/start_handling",
+          "id": "keychain1/start_handling",
           "piece": "start_handling",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "handling"
         },
         {
-          "id": "sample1/ship_standard",
+          "id": "keychain1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "keychain1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "keychain1/ship_standard",
           "piece": "ship_standard",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "shipping",
           "config": {
             "groupBy": [
@@ -52,34 +59,34 @@
           }
         },
         {
-          "id": "sample1/wait_delivery",
+          "id": "keychain1/wait_delivery",
           "piece": "wait_delivery",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "in_transit"
         },
         {
-          "id": "sample1/return_window",
+          "id": "keychain1/return_window",
           "piece": "return_window",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "delivered",
           "config": {
             "days": 7
           }
         },
         {
-          "id": "sample1/process_return",
+          "id": "keychain1/process_return",
           "piece": "process_return",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "returning"
         },
         {
-          "id": "sample1/wait_restock",
+          "id": "keychain1/wait_restock",
           "piece": "wait_restock",
           "scope": "item",
-          "itemId": "sample1",
+          "itemId": "keychain1",
           "publicStatus": "waiting_restock",
           "config": {
             "maxWaitDays": 15
@@ -107,7 +114,7 @@
           "from": "release_items",
           "port": "released",
           "type": "item_released",
-          "to": "sample1/reserve_stock"
+          "to": "keychain1/reserve_stock"
         },
         {
           "from": "release_items",
@@ -115,96 +122,107 @@
           "type": "manual_review_required"
         },
         {
-          "from": "sample1/reserve_stock",
+          "from": "keychain1/reserve_stock",
           "port": "reserved",
           "type": "stock_reserved",
-          "to": "sample1/start_handling"
+          "to": "keychain1/start_handling"
         },
         {
-          "from": "sample1/reserve_stock",
+          "from": "keychain1/reserve_stock",
           "port": "no_stock",
           "type": "awaiting_restock",
-          "to": "sample1/wait_restock"
+          "to": "keychain1/wait_restock"
         },
         {
-          "from": "sample1/reserve_stock",
+          "from": "keychain1/reserve_stock",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "sample1/start_handling",
+          "from": "keychain1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "sample1/ship_standard"
+          "to": "keychain1/issue_invoice"
         },
         {
-          "from": "sample1/start_handling",
+          "from": "keychain1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
-          "to": "sample1/reserve_stock"
+          "to": "keychain1/reserve_stock"
         },
         {
-          "from": "sample1/ship_standard",
-          "port": "shipped",
-          "type": "in_transit",
-          "to": "sample1/wait_delivery"
+          "from": "keychain1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "keychain1/ship_standard"
         },
         {
-          "from": "sample1/ship_standard",
+          "from": "keychain1/issue_invoice",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "sample1/wait_delivery",
+          "from": "keychain1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "keychain1/wait_delivery"
+        },
+        {
+          "from": "keychain1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "keychain1/wait_delivery",
           "port": "delivered",
           "type": "item_delivered",
-          "to": "sample1/return_window"
+          "to": "keychain1/return_window"
         },
         {
-          "from": "sample1/wait_delivery",
+          "from": "keychain1/wait_delivery",
           "port": "exception",
           "type": "resourcing_required",
-          "to": "sample1/reserve_stock"
+          "to": "keychain1/reserve_stock"
         },
         {
-          "from": "sample1/return_window",
+          "from": "keychain1/return_window",
           "port": "closed",
           "type": "item_completed"
         },
         {
-          "from": "sample1/return_window",
+          "from": "keychain1/return_window",
           "port": "return_requested",
           "type": "return_requested",
-          "to": "sample1/process_return"
+          "to": "keychain1/process_return"
         },
         {
-          "from": "sample1/return_window",
+          "from": "keychain1/return_window",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "sample1/process_return",
+          "from": "keychain1/process_return",
           "port": "refunded",
           "type": "item_returned"
         },
         {
-          "from": "sample1/process_return",
+          "from": "keychain1/process_return",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "sample1/wait_restock",
+          "from": "keychain1/wait_restock",
           "port": "restocked",
           "type": "restock_received",
-          "to": "sample1/reserve_stock"
+          "to": "keychain1/reserve_stock"
         },
         {
-          "from": "sample1/wait_restock",
+          "from": "keychain1/wait_restock",
           "port": "expired",
           "type": "item_cancelled"
         },
         {
-          "from": "sample1/wait_restock",
+          "from": "keychain1/wait_restock",
           "port": "exception",
           "type": "manual_review_required"
         }

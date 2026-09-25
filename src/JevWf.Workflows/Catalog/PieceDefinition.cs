@@ -20,8 +20,13 @@ public enum PieceScope
     Item
 }
 
-// "rule" is evaluated by code; "jev" is a statement the Jev judges. When both are set, both must hold.
-public sealed record Condition(string? Rule = null, string? Jev = null);
+// "rule" is evaluated by code; "jev" is a statement the Jev judges and must hold; "jevNot" is a
+// statement that must not hold. Two pieces with the same statement, one as "jev" and the other as
+// "jevNot", are exclusive alternatives decided by one question. The rule and the statement must both pass.
+public sealed record Condition(string? Rule = null, string? Jev = null, string? JevNot = null)
+{
+    public string? Statement => Jev ?? JevNot;
+}
 
 public sealed record PieceDefinition
 {

@@ -5,8 +5,20 @@
       "orderId": "og-prescription-01",
       "sellerId": "seller-pharmacy",
       "items": [
-        { "itemId": "amoxicillin1", "productName": "Amoxicillin 500mg", "description": "Controlled antibiotic, can only be sold on presentation of a medical prescription.", "quantity": 1, "unitPrice": 35.00 },
-        { "itemId": "vitaminc1", "productName": "Vitamin C 1g", "description": "Over-the-counter vitamin supplement, no prescription needed, no delivery urgency.", "quantity": 1, "unitPrice": 25.00 }
+        {
+          "itemId": "amoxicillin1",
+          "productName": "Amoxicillin 500mg",
+          "description": "Controlled antibiotic, can only be sold on presentation of a medical prescription.",
+          "quantity": 1,
+          "unitPrice": 35.0
+        },
+        {
+          "itemId": "bottle1",
+          "productName": "Reusable water bottle 500ml",
+          "description": "Plastic reusable water bottle, ordinary physical product, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 25.0
+        }
       ]
     }
   ]

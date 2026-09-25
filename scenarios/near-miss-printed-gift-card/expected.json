@@ -1,0 +1,361 @@
+{
+  "orderGroupId": "og-near-miss-printed-gift-card",
+  "workflows": [
+    {
+      "orderId": "og-near-miss-printed-gift-card-01",
+      "mode": "default",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "review_unusual_order",
+          "piece": "review_unusual_order",
+          "scope": "order",
+          "publicStatus": "order_review",
+          "config": {
+            "queue": "unusual-orders"
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "giftcard1/request_prescription",
+          "piece": "request_prescription",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "waiting_prescription",
+          "config": {
+            "timeoutHours": 48
+          }
+        },
+        {
+          "id": "giftcard1/verify_age",
+          "piece": "verify_age",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "waiting_age_verification",
+          "config": {
+            "minimumAge": 18
+          }
+        },
+        {
+          "id": "giftcard1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "giftcard1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "giftcard1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "giftcard1/require_special_transport",
+          "piece": "require_special_transport",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "invoicing",
+          "config": {
+            "carrierCertification": "IATA-DGR"
+          }
+        },
+        {
+          "id": "giftcard1/ship_standard",
+          "piece": "ship_standard",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "giftcard1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "giftcard1/return_window",
+          "piece": "return_window",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "delivered",
+          "config": {
+            "days": 7
+          }
+        },
+        {
+          "id": "giftcard1/process_return",
+          "piece": "process_return",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "returning"
+        },
+        {
+          "id": "giftcard1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "giftcard1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "review_unusual_order"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "review_unusual_order",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "giftcard1/request_prescription"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/request_prescription",
+          "port": "approved",
+          "type": "item_released",
+          "to": "giftcard1/verify_age"
+        },
+        {
+          "from": "giftcard1/request_prescription",
+          "port": "denied",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "giftcard1/request_prescription",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/verify_age",
+          "port": "verified",
+          "type": "item_released",
+          "to": "giftcard1/reserve_stock"
+        },
+        {
+          "from": "giftcard1/verify_age",
+          "port": "underage",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "giftcard1/verify_age",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "giftcard1/start_handling"
+        },
+        {
+          "from": "giftcard1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "giftcard1/wait_restock"
+        },
+        {
+          "from": "giftcard1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "giftcard1/issue_invoice"
+        },
+        {
+          "from": "giftcard1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "giftcard1/reserve_stock"
+        },
+        {
+          "from": "giftcard1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "giftcard1/require_special_transport"
+        },
+        {
+          "from": "giftcard1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/require_special_transport",
+          "port": "declared",
+          "type": "ready_to_ship",
+          "to": "giftcard1/ship_standard"
+        },
+        {
+          "from": "giftcard1/require_special_transport",
+          "port": "not_allowed",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "giftcard1/require_special_transport",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "giftcard1/wait_delivery"
+        },
+        {
+          "from": "giftcard1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "giftcard1/return_window"
+        },
+        {
+          "from": "giftcard1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "giftcard1/reserve_stock"
+        },
+        {
+          "from": "giftcard1/return_window",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "giftcard1/return_window",
+          "port": "return_requested",
+          "type": "return_requested",
+          "to": "giftcard1/process_return"
+        },
+        {
+          "from": "giftcard1/return_window",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/process_return",
+          "port": "refunded",
+          "type": "item_returned"
+        },
+        {
+          "from": "giftcard1/process_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "giftcard1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "giftcard1/reserve_stock"
+        },
+        {
+          "from": "giftcard1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "giftcard1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

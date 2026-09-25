@@ -1,11 +1,17 @@
 {
-  "orderGroupId": "og-high-value",
+  "orderGroupId": "og-high-value-fraud-check",
   "orders": [
     {
-      "orderId": "og-high-value-01",
+      "orderId": "og-high-value-fraud-check-01",
       "sellerId": "seller-jewelry",
       "items": [
-        { "itemId": "goldwatch1", "productName": "18k gold wristwatch", "description": "Luxury gold wristwatch, ordinary physical product, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 8000.00 }
+        {
+          "itemId": "goldwatch1",
+          "productName": "18k gold wristwatch",
+          "description": "Luxury gold wristwatch, ordinary physical product, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 8000.0
+        }
       ]
     }
   ]

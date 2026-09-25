@@ -49,6 +49,13 @@
           "publicStatus": "handling"
         },
         {
+          "id": "shirt1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "shirt1",
+          "publicStatus": "invoicing"
+        },
+        {
           "id": "shirt1/ship_standard",
           "piece": "ship_standard",
           "scope": "item",
@@ -161,13 +168,24 @@
           "from": "shirt1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "shirt1/ship_standard"
+          "to": "shirt1/issue_invoice"
         },
         {
           "from": "shirt1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "shirt1/reserve_stock"
+        },
+        {
+          "from": "shirt1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "shirt1/ship_standard"
+        },
+        {
+          "from": "shirt1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "shirt1/ship_standard",

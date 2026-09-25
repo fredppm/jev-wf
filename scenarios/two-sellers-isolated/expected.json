@@ -1,8 +1,8 @@
 {
-  "orderGroupId": "og-two-sellers",
+  "orderGroupId": "og-two-sellers-isolated",
   "workflows": [
     {
-      "orderId": "og-two-sellers-01",
+      "orderId": "og-two-sellers-isolated-01",
       "mode": "jev",
       "start": "confirm_seller",
       "nodes": [
@@ -47,6 +47,13 @@
           "scope": "item",
           "itemId": "book1",
           "publicStatus": "handling"
+        },
+        {
+          "id": "book1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "book1",
+          "publicStatus": "invoicing"
         },
         {
           "id": "book1/ship_standard",
@@ -161,13 +168,24 @@
           "from": "book1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "book1/ship_standard"
+          "to": "book1/issue_invoice"
         },
         {
           "from": "book1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "book1/reserve_stock"
+        },
+        {
+          "from": "book1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "book1/ship_standard"
+        },
+        {
+          "from": "book1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "book1/ship_standard",
@@ -237,7 +255,7 @@
       ]
     },
     {
-      "orderId": "og-two-sellers-02",
+      "orderId": "og-two-sellers-isolated-02",
       "mode": "jev",
       "start": "confirm_seller",
       "nodes": [
@@ -282,6 +300,13 @@
           "scope": "item",
           "itemId": "toy1",
           "publicStatus": "handling"
+        },
+        {
+          "id": "toy1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "toy1",
+          "publicStatus": "invoicing"
         },
         {
           "id": "toy1/ship_standard",
@@ -396,13 +421,24 @@
           "from": "toy1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "toy1/ship_standard"
+          "to": "toy1/issue_invoice"
         },
         {
           "from": "toy1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "toy1/reserve_stock"
+        },
+        {
+          "from": "toy1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "toy1/ship_standard"
+        },
+        {
+          "from": "toy1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "toy1/ship_standard",

@@ -1,14 +1,98 @@
 {
+  "og-multi-seller-01": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
   "og-multi-seller-01/fridge1": {
-    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
-    "next_after_ready_to_ship": { "choice": "ship_standard", "confidence": 0.92 }
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_heavy_freight",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": true,
+      "confidence": 0.9
+    }
+  },
+  "og-multi-seller-02": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
   },
   "og-multi-seller-02/icecream1": {
-    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
-    "next_after_ready_to_ship": { "choice": "ship_cold_chain", "confidence": 0.98 }
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_cold_chain",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-multi-seller-03": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
   },
   "og-multi-seller-03/cable1": {
-    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
-    "next_after_ready_to_ship": { "choice": "ship_express", "confidence": 0.94 }
+    "request_prescription": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_express",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": true,
+      "confidence": 0.9
+    }
   }
 }

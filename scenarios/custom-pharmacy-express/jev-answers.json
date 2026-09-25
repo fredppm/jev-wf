@@ -1,7 +1,34 @@
 {
-  "og-pharmacy-express-01/anxiolytic1": {
-    "request_prescription": { "yes": true, "confidence": 0.98 },
-    "next_after_item_released": { "choice": "reserve_stock", "confidence": 0.99 },
-    "next_after_ready_to_ship": { "choice": "ship_express", "confidence": 0.95 }
+  "og-custom-pharmacy-express-01": {
+    "review_unusual_order": {
+      "yes": false,
+      "confidence": 0.9
+    }
+  },
+  "og-custom-pharmacy-express-01/anxiolytic1": {
+    "request_prescription": {
+      "yes": true,
+      "confidence": 0.95
+    },
+    "verify_age": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "require_special_transport": {
+      "yes": false,
+      "confidence": 0.95
+    },
+    "next_after_item_released": {
+      "choice": "reserve_stock",
+      "confidence": 0.95
+    },
+    "next_after_ready_to_ship": {
+      "choice": "ship_express",
+      "confidence": 0.9
+    },
+    "return_window": {
+      "yes": false,
+      "confidence": 0.9
+    }
   }
 }

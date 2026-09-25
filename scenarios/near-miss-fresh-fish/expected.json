@@ -1,0 +1,232 @@
+{
+  "orderGroupId": "og-near-miss-fresh-fish",
+  "workflows": [
+    {
+      "orderId": "og-near-miss-fresh-fish-01",
+      "mode": "jev",
+      "start": "confirm_seller",
+      "nodes": [
+        {
+          "id": "confirm_seller",
+          "piece": "confirm_seller",
+          "scope": "order",
+          "publicStatus": "waiting_seller",
+          "config": {
+            "timeoutMinutes": 60
+          }
+        },
+        {
+          "id": "payment",
+          "piece": "payment",
+          "scope": "order",
+          "publicStatus": "payment_pending",
+          "config": {
+            "timeoutMinutes": 30,
+            "retries": 2
+          }
+        },
+        {
+          "id": "release_items",
+          "piece": "release_items",
+          "scope": "order",
+          "publicStatus": "ready_for_handling"
+        },
+        {
+          "id": "salmon1/reserve_stock",
+          "piece": "reserve_stock",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "sourcing",
+          "config": {
+            "strategy": "lowest_effective_lead_time"
+          }
+        },
+        {
+          "id": "salmon1/start_handling",
+          "piece": "start_handling",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "handling"
+        },
+        {
+          "id": "salmon1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "salmon1/ship_cold_chain",
+          "piece": "ship_cold_chain",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "shipping",
+          "config": {
+            "groupBy": [
+              "origin",
+              "shippingMethod"
+            ]
+          }
+        },
+        {
+          "id": "salmon1/wait_delivery",
+          "piece": "wait_delivery",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "in_transit"
+        },
+        {
+          "id": "salmon1/close_without_return",
+          "piece": "close_without_return",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "delivered"
+        },
+        {
+          "id": "salmon1/wait_restock",
+          "piece": "wait_restock",
+          "scope": "item",
+          "itemId": "salmon1",
+          "publicStatus": "waiting_restock",
+          "config": {
+            "maxWaitDays": 15
+          }
+        }
+      ],
+      "edges": [
+        {
+          "from": "confirm_seller",
+          "port": "confirmed",
+          "type": "order_confirmed",
+          "to": "payment"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "rejected",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "confirm_seller",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "payment",
+          "port": "approved",
+          "type": "order_confirmed",
+          "to": "release_items"
+        },
+        {
+          "from": "payment",
+          "port": "denied",
+          "type": "order_cancelled"
+        },
+        {
+          "from": "payment",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "release_items",
+          "port": "released",
+          "type": "item_released",
+          "to": "salmon1/reserve_stock"
+        },
+        {
+          "from": "release_items",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "salmon1/reserve_stock",
+          "port": "reserved",
+          "type": "stock_reserved",
+          "to": "salmon1/start_handling"
+        },
+        {
+          "from": "salmon1/reserve_stock",
+          "port": "no_stock",
+          "type": "awaiting_restock",
+          "to": "salmon1/wait_restock"
+        },
+        {
+          "from": "salmon1/reserve_stock",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "salmon1/start_handling",
+          "port": "ready",
+          "type": "ready_to_ship",
+          "to": "salmon1/issue_invoice"
+        },
+        {
+          "from": "salmon1/start_handling",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "salmon1/reserve_stock"
+        },
+        {
+          "from": "salmon1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "salmon1/ship_cold_chain"
+        },
+        {
+          "from": "salmon1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "salmon1/ship_cold_chain",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "salmon1/wait_delivery"
+        },
+        {
+          "from": "salmon1/ship_cold_chain",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "salmon1/wait_delivery",
+          "port": "delivered",
+          "type": "item_delivered",
+          "to": "salmon1/close_without_return"
+        },
+        {
+          "from": "salmon1/wait_delivery",
+          "port": "exception",
+          "type": "resourcing_required",
+          "to": "salmon1/reserve_stock"
+        },
+        {
+          "from": "salmon1/close_without_return",
+          "port": "closed",
+          "type": "item_completed"
+        },
+        {
+          "from": "salmon1/close_without_return",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "salmon1/wait_restock",
+          "port": "restocked",
+          "type": "restock_received",
+          "to": "salmon1/reserve_stock"
+        },
+        {
+          "from": "salmon1/wait_restock",
+          "port": "expired",
+          "type": "item_cancelled"
+        },
+        {
+          "from": "salmon1/wait_restock",
+          "port": "exception",
+          "type": "manual_review_required"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "orderGroupId": "og-custom-gift-shop",
+  "orders": [
+    {
+      "orderId": "og-custom-gift-shop-01",
+      "sellerId": "seller-gift-shop",
+      "items": [
+        {
+          "itemId": "candle1",
+          "productName": "Scented candle gift box",
+          "description": "Gift box with two scented candles and a greeting card, sold as a present, small parcel.",
+          "quantity": 1,
+          "unitPrice": 60.0
+        },
+        {
+          "itemId": "notebook1",
+          "productName": "Plain notebook",
+          "description": "Ordinary paper notebook, small physical product, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 20.0
+        }
+      ]
+    }
+  ]
+}

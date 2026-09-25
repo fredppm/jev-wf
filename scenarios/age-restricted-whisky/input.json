@@ -1,0 +1,18 @@
+{
+  "orderGroupId": "og-age-restricted-whisky",
+  "orders": [
+    {
+      "orderId": "og-age-restricted-whisky-01",
+      "sellerId": "seller-liquor",
+      "items": [
+        {
+          "itemId": "whisky1",
+          "productName": "Single malt whisky 750ml",
+          "description": "Alcoholic drink, 40% ABV, sealed glass bottle, ordinary parcel, no delivery urgency.",
+          "quantity": 1,
+          "unitPrice": 90.0
+        }
+      ]
+    }
+  ]
+}

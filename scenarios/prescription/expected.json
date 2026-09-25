@@ -59,6 +59,13 @@
           "publicStatus": "handling"
         },
         {
+          "id": "amoxicillin1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "amoxicillin1",
+          "publicStatus": "invoicing"
+        },
+        {
           "id": "amoxicillin1/ship_standard",
           "piece": "ship_standard",
           "scope": "item",
@@ -79,21 +86,11 @@
           "publicStatus": "in_transit"
         },
         {
-          "id": "amoxicillin1/return_window",
-          "piece": "return_window",
+          "id": "amoxicillin1/close_without_return",
+          "piece": "close_without_return",
           "scope": "item",
           "itemId": "amoxicillin1",
-          "publicStatus": "delivered",
-          "config": {
-            "days": 7
-          }
-        },
-        {
-          "id": "amoxicillin1/process_return",
-          "piece": "process_return",
-          "scope": "item",
-          "itemId": "amoxicillin1",
-          "publicStatus": "returning"
+          "publicStatus": "delivered"
         },
         {
           "id": "amoxicillin1/wait_restock",
@@ -106,27 +103,34 @@
           }
         },
         {
-          "id": "vitaminc1/reserve_stock",
+          "id": "bottle1/reserve_stock",
           "piece": "reserve_stock",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "sourcing",
           "config": {
             "strategy": "lowest_effective_lead_time"
           }
         },
         {
-          "id": "vitaminc1/start_handling",
+          "id": "bottle1/start_handling",
           "piece": "start_handling",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "handling"
         },
         {
-          "id": "vitaminc1/ship_standard",
+          "id": "bottle1/issue_invoice",
+          "piece": "issue_invoice",
+          "scope": "item",
+          "itemId": "bottle1",
+          "publicStatus": "invoicing"
+        },
+        {
+          "id": "bottle1/ship_standard",
           "piece": "ship_standard",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "shipping",
           "config": {
             "groupBy": [
@@ -136,34 +140,34 @@
           }
         },
         {
-          "id": "vitaminc1/wait_delivery",
+          "id": "bottle1/wait_delivery",
           "piece": "wait_delivery",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "in_transit"
         },
         {
-          "id": "vitaminc1/return_window",
+          "id": "bottle1/return_window",
           "piece": "return_window",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "delivered",
           "config": {
             "days": 7
           }
         },
         {
-          "id": "vitaminc1/process_return",
+          "id": "bottle1/process_return",
           "piece": "process_return",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "returning"
         },
         {
-          "id": "vitaminc1/wait_restock",
+          "id": "bottle1/wait_restock",
           "piece": "wait_restock",
           "scope": "item",
-          "itemId": "vitaminc1",
+          "itemId": "bottle1",
           "publicStatus": "waiting_restock",
           "config": {
             "maxWaitDays": 15
@@ -213,7 +217,7 @@
           "from": "release_items",
           "port": "released",
           "type": "item_released",
-          "to": "vitaminc1/reserve_stock"
+          "to": "bottle1/reserve_stock"
         },
         {
           "from": "release_items",
@@ -257,13 +261,24 @@
           "from": "amoxicillin1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "amoxicillin1/ship_standard"
+          "to": "amoxicillin1/issue_invoice"
         },
         {
           "from": "amoxicillin1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
           "to": "amoxicillin1/reserve_stock"
+        },
+        {
+          "from": "amoxicillin1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "amoxicillin1/ship_standard"
+        },
+        {
+          "from": "amoxicillin1/issue_invoice",
+          "port": "exception",
+          "type": "manual_review_required"
         },
         {
           "from": "amoxicillin1/ship_standard",
@@ -280,7 +295,7 @@
           "from": "amoxicillin1/wait_delivery",
           "port": "delivered",
           "type": "item_delivered",
-          "to": "amoxicillin1/return_window"
+          "to": "amoxicillin1/close_without_return"
         },
         {
           "from": "amoxicillin1/wait_delivery",
@@ -289,28 +304,12 @@
           "to": "amoxicillin1/reserve_stock"
         },
         {
-          "from": "amoxicillin1/return_window",
+          "from": "amoxicillin1/close_without_return",
           "port": "closed",
           "type": "item_completed"
         },
         {
-          "from": "amoxicillin1/return_window",
-          "port": "return_requested",
-          "type": "return_requested",
-          "to": "amoxicillin1/process_return"
-        },
-        {
-          "from": "amoxicillin1/return_window",
-          "port": "exception",
-          "type": "manual_review_required"
-        },
-        {
-          "from": "amoxicillin1/process_return",
-          "port": "refunded",
-          "type": "item_returned"
-        },
-        {
-          "from": "amoxicillin1/process_return",
+          "from": "amoxicillin1/close_without_return",
           "port": "exception",
           "type": "manual_review_required"
         },
@@ -331,96 +330,107 @@
           "type": "manual_review_required"
         },
         {
-          "from": "vitaminc1/reserve_stock",
+          "from": "bottle1/reserve_stock",
           "port": "reserved",
           "type": "stock_reserved",
-          "to": "vitaminc1/start_handling"
+          "to": "bottle1/start_handling"
         },
         {
-          "from": "vitaminc1/reserve_stock",
+          "from": "bottle1/reserve_stock",
           "port": "no_stock",
           "type": "awaiting_restock",
-          "to": "vitaminc1/wait_restock"
+          "to": "bottle1/wait_restock"
         },
         {
-          "from": "vitaminc1/reserve_stock",
+          "from": "bottle1/reserve_stock",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "vitaminc1/start_handling",
+          "from": "bottle1/start_handling",
           "port": "ready",
           "type": "ready_to_ship",
-          "to": "vitaminc1/ship_standard"
+          "to": "bottle1/issue_invoice"
         },
         {
-          "from": "vitaminc1/start_handling",
+          "from": "bottle1/start_handling",
           "port": "exception",
           "type": "resourcing_required",
-          "to": "vitaminc1/reserve_stock"
+          "to": "bottle1/reserve_stock"
         },
         {
-          "from": "vitaminc1/ship_standard",
-          "port": "shipped",
-          "type": "in_transit",
-          "to": "vitaminc1/wait_delivery"
+          "from": "bottle1/issue_invoice",
+          "port": "issued",
+          "type": "ready_to_ship",
+          "to": "bottle1/ship_standard"
         },
         {
-          "from": "vitaminc1/ship_standard",
+          "from": "bottle1/issue_invoice",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "vitaminc1/wait_delivery",
+          "from": "bottle1/ship_standard",
+          "port": "shipped",
+          "type": "in_transit",
+          "to": "bottle1/wait_delivery"
+        },
+        {
+          "from": "bottle1/ship_standard",
+          "port": "exception",
+          "type": "manual_review_required"
+        },
+        {
+          "from": "bottle1/wait_delivery",
           "port": "delivered",
           "type": "item_delivered",
-          "to": "vitaminc1/return_window"
+          "to": "bottle1/return_window"
         },
         {
-          "from": "vitaminc1/wait_delivery",
+          "from": "bottle1/wait_delivery",
           "port": "exception",
           "type": "resourcing_required",
-          "to": "vitaminc1/reserve_stock"
+          "to": "bottle1/reserve_stock"
         },
         {
-          "from": "vitaminc1/return_window",
+          "from": "bottle1/return_window",
           "port": "closed",
           "type": "item_completed"
         },
         {
-          "from": "vitaminc1/return_window",
+          "from": "bottle1/return_window",
           "port": "return_requested",
           "type": "return_requested",
-          "to": "vitaminc1/process_return"
+          "to": "bottle1/process_return"
         },
         {
-          "from": "vitaminc1/return_window",
+          "from": "bottle1/return_window",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "vitaminc1/process_return",
+          "from": "bottle1/process_return",
           "port": "refunded",
           "type": "item_returned"
         },
         {
-          "from": "vitaminc1/process_return",
+          "from": "bottle1/process_return",
           "port": "exception",
           "type": "manual_review_required"
         },
         {
-          "from": "vitaminc1/wait_restock",
+          "from": "bottle1/wait_restock",
           "port": "restocked",
           "type": "restock_received",
-          "to": "vitaminc1/reserve_stock"
+          "to": "bottle1/reserve_stock"
         },
         {
-          "from": "vitaminc1/wait_restock",
+          "from": "bottle1/wait_restock",
           "port": "expired",
           "type": "item_cancelled"
         },
         {
-          "from": "vitaminc1/wait_restock",
+          "from": "bottle1/wait_restock",
           "port": "exception",
           "type": "manual_review_required"
         }

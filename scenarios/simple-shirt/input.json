@@ -5,7 +5,13 @@
       "orderId": "og-simple-shirt-01",
       "sellerId": "seller-apparel",
       "items": [
-        { "itemId": "shirt1", "productName": "Cotton t-shirt", "description": "Ordinary cotton t-shirt, physical product, no special handling, no delivery urgency, no legal restriction.", "quantity": 1, "unitPrice": 59.90 }
+        {
+          "itemId": "shirt1",
+          "productName": "Cotton t-shirt",
+          "description": "Ordinary cotton t-shirt, physical product, no special handling, no delivery urgency, no legal restriction.",
+          "quantity": 1,
+          "unitPrice": 59.9
+        }
       ]
     }
   ]

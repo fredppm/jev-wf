@@ -154,6 +154,8 @@ public sealed class PieceCatalog
             throw Invalid(source, $"'{piece.Name}' cannot name an output '{PieceDefinition.ExceptionPort}'; use onException.");
         if (piece.In.FirstOrDefault(Types.IsTerminal) is { } terminal)
             throw Invalid(source, $"'{piece.Name}' accepts the terminal type '{terminal}'.");
+        if (piece.When is { Jev: not null, JevNot: not null })
+            throw Invalid(source, $"'{piece.Name}' cannot have both 'jev' and 'jevNot'.");
         if (piece.Kind == PieceKind.Required && piece.When is null && piece.Replaces is null)
             throw Invalid(source, $"'{piece.Name}' is required but has no condition; use kind 'fixed'.");
     }

@@ -124,8 +124,9 @@
       "description": "Made-to-order or personalized physical product (engraving, tailoring, furniture built on demand): produced after purchase, there is no stock to reserve.",
       "kind": "optional",
       "scope": "item",
-      "in": "item_released",
+      "in": ["item_released", "production_required"],
       "out": { "produced": "stock_reserved" },
+      "exceptionRedirects": { "resourcing_required": "production_required" },
       "publicStatus": "in_production",
       "config": { "maxLeadTimeDays": 15 }
     },

@@ -65,6 +65,7 @@ pieces connect only when one produces a type the other accepts.
 | `when` | `rule` (code, e.g. `order.total > 100 && item.quantity >= 2`) and/or `jev` (a statement the Jev judges must hold) or `jevNot` (must not hold; two pieces with the same statement, one `jev` and one `jevNot`, are alternatives decided by one question). Fields: `order.total`, `order.sellerId`, `order.itemCount`, `item.unitPrice`, `item.quantity`, `item.total` |
 | `in` / `out` | The connection types. Types are free strings; custom pieces can create new ones |
 | `onException` | Type produced when the piece fails. Default: `manual_review_required` (a person decides) |
+| `exceptionRedirects` | Exception type -> type it becomes for every piece placed after this one in the same flow (`produce_to_order`: `resourcing_required` -> `production_required`) |
 | `publicStatus` | What everyone outside sees while the flow is in this piece |
 | `default` | Picked when several pieces compete and the Jev is not deciding |
 | `config` | The piece's own parameters, copied into the workflow |
@@ -81,7 +82,9 @@ pieces connect only when one produces a type the other accepts.
 - **Order → items.** An order type that no order piece accepts splits the flow into one branch per
   item (`release_items` → `item_released`).
 - **Loops.** A type can lead back to a piece already placed: a handling or delivery failure
-  (`resourcing_required`) or a restock (`restock_received`) goes back to `reserve_stock`.
+  (`resourcing_required`) or a restock (`restock_received`) goes back to `reserve_stock`. For a
+  made-to-order item, `produce_to_order` redirects those failures to `production_required`, so they
+  go back to production instead.
 - **Terminals** (`vtex.json` → `types.terminals`) end a flow with a public status. The order's
   status is aggregated from its items by fixed rules; it is not a piece.
 

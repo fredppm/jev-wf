@@ -182,6 +182,30 @@ public sealed class WorkflowBuilderTests
     }
 
     [Fact]
+    public async Task Failures_after_production_go_back_to_production_not_to_stock()
+    {
+        var jev = Jev(("o1/i1", "next_after_item_released", new JevAnswer(Choice: "produce_to_order", Confidence: 0.9)));
+
+        var workflow = await Build(Order(), jev);
+
+        workflow.Edges.Should().Contain(
+        [
+            Edge("i1/start_handling", "exception", "production_required", "i1/produce_to_order"),
+            Edge("i1/wait_delivery", "exception", "production_required", "i1/produce_to_order")
+        ]);
+        workflow.Nodes.Select(n => n.Piece).Should().NotContain(["reserve_stock", "wait_restock"]);
+    }
+
+    [Fact]
+    public async Task Failures_after_reserving_stock_still_go_back_to_stock()
+    {
+        var workflow = await Build(Order());
+
+        workflow.Edges.Should().Contain(Edge("i1/start_handling", "exception", "resourcing_required", "i1/reserve_stock"));
+        workflow.Nodes.Select(n => n.Piece).Should().NotContain("produce_to_order");
+    }
+
+    [Fact]
     public async Task A_seller_can_add_a_piece_without_replacing_any()
     {
         var order = Order() with { SellerId = "seller-gift-shop" };

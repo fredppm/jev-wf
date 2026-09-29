@@ -47,6 +47,11 @@ public sealed record PieceDefinition
     // Type produced when the piece fails; the catalog's default exception when omitted.
     public string? OnException { get; init; }
 
+    // Exception type -> type it becomes for every piece placed after this one in the same flow.
+    // produce_to_order turns "resourcing_required" into "production_required", so a failure after
+    // production goes back to production instead of to stock that does not exist.
+    public IReadOnlyDictionary<string, string>? ExceptionRedirects { get; init; }
+
     // Name of the VTEX piece this one (and the rest of its chain) replaces.
     public string? Replaces { get; init; }
 

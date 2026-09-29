@@ -19,6 +19,7 @@ internal sealed class WorkflowAssembly
     private readonly HashSet<string> _nodeIds = new(StringComparer.Ordinal);
     private readonly List<WorkflowEdge> _edges = [];
     private readonly List<string> _errors = [];
+    private readonly Dictionary<string, Dictionary<string, string>> _redirects = new(StringComparer.Ordinal);
     private readonly string? _start;
 
     public WorkflowAssembly(
@@ -112,12 +113,23 @@ internal sealed class WorkflowAssembly
 
         _nodes.Add(new WorkflowNode(id, piece.Name, piece.Scope, instance.Item?.ItemId, piece.PublicStatus!, piece.Config?.DeepClone().AsObject()));
 
+        // Everything placed from here on in this flow fails through the redirected types.
+        foreach (var (from, to) in piece.ExceptionRedirects ?? new Dictionary<string, string>())
+            RedirectsOf(instance)[from] = to;
+
         foreach (var (port, type) in piece.Out)
             Connect(instance, piece, id, port, type);
-        Connect(instance, piece, id, PieceDefinition.ExceptionPort, piece.OnException ?? _types.DefaultException);
+
+        var exception = piece.OnException ?? _types.DefaultException;
+        Connect(instance, piece, id, PieceDefinition.ExceptionPort, RedirectsOf(instance).GetValueOrDefault(exception, exception));
 
         return id;
     }
+
+    private Dictionary<string, string> RedirectsOf(Instance instance) =>
+        _redirects.TryGetValue(instance.Key, out var redirects)
+            ? redirects
+            : _redirects[instance.Key] = new Dictionary<string, string>(StringComparer.Ordinal);
 
     private void Connect(Instance instance, PieceDefinition piece, string id, string port, string type)
     {

@@ -81,26 +81,6 @@
           "scope": "item",
           "itemId": "nameplate1",
           "publicStatus": "delivered"
-        },
-        {
-          "id": "nameplate1/reserve_stock",
-          "piece": "reserve_stock",
-          "scope": "item",
-          "itemId": "nameplate1",
-          "publicStatus": "sourcing",
-          "config": {
-            "strategy": "lowest_effective_lead_time"
-          }
-        },
-        {
-          "id": "nameplate1/wait_restock",
-          "piece": "wait_restock",
-          "scope": "item",
-          "itemId": "nameplate1",
-          "publicStatus": "waiting_restock",
-          "config": {
-            "maxWaitDays": 15
-          }
         }
       ],
       "edges": [
@@ -167,8 +147,8 @@
         {
           "from": "nameplate1/start_handling",
           "port": "exception",
-          "type": "resourcing_required",
-          "to": "nameplate1/reserve_stock"
+          "type": "production_required",
+          "to": "nameplate1/produce_to_order"
         },
         {
           "from": "nameplate1/issue_invoice",
@@ -201,8 +181,8 @@
         {
           "from": "nameplate1/wait_delivery",
           "port": "exception",
-          "type": "resourcing_required",
-          "to": "nameplate1/reserve_stock"
+          "type": "production_required",
+          "to": "nameplate1/produce_to_order"
         },
         {
           "from": "nameplate1/close_without_return",
@@ -211,39 +191,6 @@
         },
         {
           "from": "nameplate1/close_without_return",
-          "port": "exception",
-          "type": "manual_review_required"
-        },
-        {
-          "from": "nameplate1/reserve_stock",
-          "port": "reserved",
-          "type": "stock_reserved",
-          "to": "nameplate1/start_handling"
-        },
-        {
-          "from": "nameplate1/reserve_stock",
-          "port": "no_stock",
-          "type": "awaiting_restock",
-          "to": "nameplate1/wait_restock"
-        },
-        {
-          "from": "nameplate1/reserve_stock",
-          "port": "exception",
-          "type": "manual_review_required"
-        },
-        {
-          "from": "nameplate1/wait_restock",
-          "port": "restocked",
-          "type": "restock_received",
-          "to": "nameplate1/reserve_stock"
-        },
-        {
-          "from": "nameplate1/wait_restock",
-          "port": "expired",
-          "type": "item_cancelled"
-        },
-        {
-          "from": "nameplate1/wait_restock",
           "port": "exception",
           "type": "manual_review_required"
         }
